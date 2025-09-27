@@ -1,0 +1,81 @@
+name: front_bars_flutter
+description: "Aplicación móvil para gestión de bares, menús y promociones"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+  flutter: ">=3.13.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Gestión de estado
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Navegación
+  go_router: ^12.1.3
+
+  # HTTP Client
+  dio: ^5.4.0
+  retrofit: ^4.0.3
+  json_annotation: ^4.8.1
+
+  # Almacenamiento local
+  flutter_secure_storage: ^9.0.0
+  shared_preferences: ^2.2.2
+
+  # UI Components
+  cupertino_icons: ^1.0.2
+  flutter_svg: ^2.0.9
+  cached_network_image: ^3.3.0
+  shimmer: ^3.0.0
+  
+  # Utilidades
+  equatable: ^2.0.5
+  dartz: ^0.10.1
+  intl: ^0.18.1
+  connectivity_plus: ^5.0.2
+  
+  # Validación de formularios
+  formz: ^0.6.1
+  
+  # Logging
+  logger: ^2.0.2+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Linting y análisis
+  flutter_lints: ^3.0.0
+  very_good_analysis: ^5.1.0
+
+  # Code generation
+  build_runner: ^2.4.7
+  riverpod_generator: ^2.3.9
+  retrofit_generator: ^8.0.4
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+
+  # Assets
+  assets:
+    - assets/images/
+    - assets/icons/
+
+  # Fonts (comentado hasta agregar las fuentes)
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: fonts/Inter-Regular.ttf
+  #       - asset: fonts/Inter-Medium.ttf
+  #         weight: 500
+  #       - asset: fonts/Inter-SemiBold.ttf
+  #         weight: 600
+  #       - asset: fonts/Inter-Bold.ttf
+  #         weight: 700
