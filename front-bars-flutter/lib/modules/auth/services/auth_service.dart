@@ -10,6 +10,7 @@ import '../models/auth_models.dart';
 /// Servicio para manejar la autenticación
 abstract class AuthService {
   Future<Either<Failure, LoginResponse>> login(LoginRequest request);
+  Future<Either<Failure, RegisterResponse>> register(RegisterRequest request);
   Future<Either<Failure, RefreshTokenResponse>> refreshToken(String refreshToken);
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, void>> forgotPassword(ForgotPasswordRequest request);
@@ -38,8 +39,32 @@ class AuthServiceImpl implements AuthService {
         data: request.toJson(),
       );
 
-      if (response.statusCode == 200 && response.data != null) {
-        final loginResponse = LoginResponse.fromJson(response.data!);
+      // El backend devuelve 201 (Created) en login exitoso
+      if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
+        final data = response.data!;
+        
+        // Adaptar la respuesta del backend al formato esperado
+        // El backend devuelve: {access_token, email, role}
+        // Necesitamos convertir a: {accessToken, refreshToken?, user: {id, email, role, ...}}
+        final adaptedData = {
+          'accessToken': data['access_token'] ?? data['accessToken'],
+          'refreshToken': data['refresh_token'] ?? data['refreshToken'],
+          'user': {
+            'id': data['id'] ?? data['sub'] ?? '', // ID del usuario
+            'email': data['email'] ?? '',
+            'name': data['name'],
+            'firstName': data['firstName'] ?? data['first_name'],
+            'lastName': data['lastName'] ?? data['last_name'],
+            'avatar': data['avatar'],
+            'role': data['role'] ?? 'client',
+            'roles': data['roles'] ?? [data['role'] ?? 'client'],
+            'isActive': data['isActive'] ?? data['is_active'] ?? true,
+            'createdAt': data['createdAt'] ?? data['created_at'] ?? DateTime.now().toIso8601String(),
+            'updatedAt': data['updatedAt'] ?? data['updated_at'] ?? DateTime.now().toIso8601String(),
+          },
+        };
+        
+        final loginResponse = LoginResponse.fromJson(adaptedData);
         
         // Guardar tokens y datos de usuario
         await _storageService.saveTokens(
@@ -52,6 +77,30 @@ class AuthServiceImpl implements AuthService {
       } else {
         return const Left(ServerFailure(
           message: 'Error en el servidor',
+          statusCode: 500,
+        ));
+      }
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } catch (e) {
+      return Left(GeneralFailure(message: 'Error: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, RegisterResponse>> register(RegisterRequest request) async {
+    try {
+      final response = await _dioClient.post<Map<String, dynamic>>(
+        '/users/register',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 201 && response.data != null) {
+        final registerResponse = RegisterResponse.fromJson(response.data!);
+        return Right(registerResponse);
+      } else {
+        return const Left(ServerFailure(
+          message: 'Error al registrar usuario',
           statusCode: 500,
         ));
       }
@@ -278,7 +327,11 @@ class AuthServiceImpl implements AuthService {
 
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
-        final message = error.response?.data?['message'] ?? 'Error desconocido';
+        String message = 'Error desconocido';
+        final responseData = error.response?.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          message = responseData['message'] as String;
+        }
 
         switch (statusCode) {
           case 400:

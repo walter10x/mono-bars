@@ -77,6 +77,46 @@ class AuthController extends _$AuthController {
     }
   }
 
+  /// Registra un nuevo usuario
+  Future<bool> register({
+    required String email,
+    required String password,
+    required String name,
+    String role = 'client',
+  }) async {
+    state = AuthState.loading();
+
+    try {
+      final request = RegisterRequest(
+        email: email,
+        password: password,
+        name: name,
+        role: role,
+      );
+      
+      final result = await _authService.register(request);
+
+      bool success = false;
+      result.fold(
+        (failure) {
+          state = AuthState.error(failure.message);
+          success = false;
+        },
+        (registerResponse) {
+          // El registro fue exitoso, pero no autenticamos automáticamente
+          // El usuario deberá hacer login manualmente
+          state = AuthState.unauthenticated();
+          success = true;
+        },
+      );
+
+      return success;
+    } catch (e) {
+      state = AuthState.error('Error inesperado: ${e.toString()}');
+      return false;
+    }
+  }
+
   /// Cierra la sesión del usuario
   Future<void> logout() async {
     state = AuthState.loading();

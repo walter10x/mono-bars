@@ -111,28 +111,41 @@ Cada módulo contiene:
 
 ### ✅ Módulo de Autenticación
 - **Login**: Inicio de sesión con email/contraseña
+- **Register**: Registro de nuevos usuarios con validación
 - **JWT Management**: Manejo automático de tokens de acceso y refresh
 - **Logout**: Cierre de sesión y limpieza de datos
+- **Protected Routes**: Navegación con guards de autenticación
+- **Auto Login**: Persistencia de sesión con tokens seguros
 - **Forgot Password**: Recuperación de contraseña (estructura preparada)
 - **Change Password**: Cambio de contraseña (estructura preparada)
 
+### ✅ Pantalla de Bienvenida (Home/Dashboard)
+- **Saludo Dinámico**: Saludo personalizado según la hora del día (Buenos días/tardes/noches)
+- **Información del Usuario**: Muestra nombre, email y rol del usuario autenticado
+- **Avatar con Iniciales**: Avatar circular con iniciales del nombre del usuario
+- **Diseño Moderno**: UI atractiva con gradientes y efectos visuales
+- **Cerrar Sesión**: Botón accesible para logout rápido
+- **Navegación Fluida**: Transición automática después del login
+
 ### ✅ Módulo de Usuarios  
-- **Register**: Registro de nuevos usuarios (estructura preparada)
 - **CRUD Operations**: Crear, leer, actualizar y eliminar usuarios
 - **User Profile**: Gestión del perfil del usuario
+- **Role Management**: Sistema de roles (client, owner, admin)
 
 ### ✅ Infraestructura Core
-- **HTTP Client**: Cliente configurado con interceptores
-- **Error Handling**: Manejo robusto de errores
+- **HTTP Client**: Cliente Dio configurado con interceptores
+- **Error Handling**: Manejo robusto de errores de red y autenticación
 - **Secure Storage**: Almacenamiento seguro de tokens y datos sensibles
+- **State Management**: Riverpod para gestión de estado reactiva
 - **Theme System**: Sistema de temas claro/oscuro
-- **Navigation**: Navegación con rutas protegidas
+- **Navigation**: GoRouter con rutas protegidas
 - **Custom Widgets**: Componentes reutilizables
 
 ### 🔄 En Desarrollo
-- **Módulo Bares**: Gestión completa de bares (modelos creados)
-- **Módulo Menús**: Gestión de menús y items (modelos creados)  
+- **Módulo Bares**: Gestión completa de bares (modelos creados, backend listo)
+- **Módulo Menús**: Gestión de menús y items (modelos creados, backend listo)  
 - **Módulo Promociones**: Gestión de ofertas y promociones (modelos creados)
+- **Dashboard Avanzado**: Estadísticas y datos en tiempo real
 
 ## 🔧 Configuración del Backend
 

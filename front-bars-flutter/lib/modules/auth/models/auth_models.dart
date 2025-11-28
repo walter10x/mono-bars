@@ -150,24 +150,28 @@ class ChangePasswordRequest extends Equatable {
 class User extends Equatable {
   final String id;
   final String email;
+  final String? name;
   final String? firstName;
   final String? lastName;
   final String? avatar;
+  final String? role;
   final List<String> roles;
   final bool isActive;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const User({
     required this.id,
     required this.email,
+    this.name,
     this.firstName,
     this.lastName,
     this.avatar,
+    this.role,
     this.roles = const [],
     this.isActive = true,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
@@ -176,7 +180,9 @@ class User extends Equatable {
 
   /// Getter para nombre completo
   String get fullName {
-    if (firstName != null && lastName != null) {
+    if (name != null && name!.isNotEmpty) {
+      return name!;
+    } else if (firstName != null && lastName != null) {
       return '$firstName $lastName';
     } else if (firstName != null) {
       return firstName!;
@@ -188,7 +194,13 @@ class User extends Equatable {
 
   /// Getter para iniciales
   String get initials {
-    if (firstName != null && lastName != null) {
+    if (name != null && name!.isNotEmpty) {
+      final words = name!.trim().split(' ');
+      if (words.length >= 2) {
+        return '${words[0][0].toUpperCase()}${words[1][0].toUpperCase()}';
+      }
+      return name![0].toUpperCase();
+    } else if (firstName != null && lastName != null) {
       return '${firstName![0].toUpperCase()}${lastName![0].toUpperCase()}';
     } else if (firstName != null) {
       return firstName![0].toUpperCase();
@@ -212,9 +224,11 @@ class User extends Equatable {
   List<Object?> get props => [
         id,
         email,
+        name,
         firstName,
         lastName,
         avatar,
+        role,
         roles,
         isActive,
         createdAt,
@@ -254,6 +268,55 @@ enum AuthStatus {
   authenticated,
   unauthenticated,
   error,
+}
+
+/// Request para registrar un nuevo usuario
+@JsonSerializable()
+class RegisterRequest extends Equatable {
+  final String email;
+  final String password;
+  final String name;
+  final String role; // 'client' (default) o 'owner'
+
+  const RegisterRequest({
+    required this.email,
+    required this.password,
+    required this.name,
+    this.role = 'client',
+  });
+
+  factory RegisterRequest.fromJson(Map<String, dynamic> json) =>
+      _$RegisterRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RegisterRequestToJson(this);
+
+  @override
+  List<Object?> get props => [
+        email,
+        password,
+        name,
+        role,
+      ];
+}
+
+/// Response del registro
+@JsonSerializable()
+class RegisterResponse extends Equatable {
+  final User user;
+  final String? message;
+
+  const RegisterResponse({
+    required this.user,
+    this.message,
+  });
+
+  factory RegisterResponse.fromJson(Map<String, dynamic> json) =>
+      _$RegisterResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RegisterResponseToJson(this);
+
+  @override
+  List<Object?> get props => [user, message];
 }
 
 /// Estado del auth controller

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/extensions.dart';
@@ -46,12 +47,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _handleForgotPassword() {
     // Navegar a pantalla de recuperación de contraseña
-    Navigator.pushNamed(context, '/forgot-password');
+    context.go('/forgot-password');
   }
 
   void _handleRegister() {
     // Navegar a pantalla de registro
-    Navigator.pushNamed(context, '/register');
+    context.go('/register');
   }
 
   @override
@@ -69,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
       } else if (current.isAuthenticated) {
         // Navegar a la pantalla principal
-        Navigator.pushReplacementNamed(context, '/home');
+        context.go('/home');
       }
     });
 

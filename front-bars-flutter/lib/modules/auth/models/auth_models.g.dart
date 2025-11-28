@@ -122,8 +122,36 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'avatar': instance.avatar,
       'roles': instance.roles,
       'isActive': instance.isActive,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
+    };
+
+RegisterRequest _$RegisterRequestFromJson(Map<String, dynamic> json) =>
+    RegisterRequest(
+      email: json['email'] as String,
+      password: json['password'] as String,
+      name: json['name'] as String,
+      role: json['role'] as String? ?? 'client',
+    );
+
+Map<String, dynamic> _$RegisterRequestToJson(RegisterRequest instance) =>
+    <String, dynamic>{
+      'email': instance.email,
+      'password': instance.password,
+      'name': instance.name,
+      'role': instance.role,
+    };
+
+RegisterResponse _$RegisterResponseFromJson(Map<String, dynamic> json) =>
+    RegisterResponse(
+      user: User.fromJson(json['user'] as Map<String, dynamic>),
+      message: json['message'] as String?,
+    );
+
+Map<String, dynamic> _$RegisterResponseToJson(RegisterResponse instance) =>
+    <String, dynamic>{
+      'user': instance.user,
+      'message': instance.message,
     };
 
 AuthState _$AuthStateFromJson(Map<String, dynamic> json) => AuthState(

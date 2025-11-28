@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../modules/auth/controllers/auth_controller.dart';
 import '../modules/auth/views/login_screen.dart';
+import '../modules/auth/views/register_screen.dart';
+import '../modules/home/views/home_screen.dart';
 
 // Importaciones temporales para pantallas que crearemos después
-// import '../modules/users/views/register_screen.dart';
 // import '../modules/auth/views/forgot_password_screen.dart';
 
 /// Configuración de rutas de la aplicación usando GoRouter
@@ -58,11 +59,7 @@ class AppRouter {
         GoRoute(
           path: register,
           name: 'register',
-          builder: (context, state) => const Scaffold(
-            body: Center(
-              child: Text('Pantalla de Registro - Por implementar'),
-            ),
-          ),
+          builder: (context, state) => const RegisterScreen(),
         ),
         
         GoRoute(
@@ -79,7 +76,7 @@ class AppRouter {
         GoRoute(
           path: home,
           name: 'home',
-          builder: (context, state) => const MainNavigationScreen(),
+          builder: (context, state) => const HomeScreen(),
         ),
 
         GoRoute(

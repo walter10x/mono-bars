@@ -109,10 +109,10 @@ class DioClient {
     );
 
     if (response.statusCode == 200) {
-      final data = response.data;
-      await _storageService.saveAccessToken(data['accessToken']);
+      final data = response.data as Map<String, dynamic>;
+      await _storageService.saveAccessToken(data['accessToken'] as String);
       if (data['refreshToken'] != null) {
-        await _storageService.saveRefreshToken(data['refreshToken']);
+        await _storageService.saveRefreshToken(data['refreshToken'] as String);
       }
     } else {
       throw Exception('Failed to refresh token');
@@ -207,7 +207,10 @@ class DioClient {
         if (statusCode == 401) {
           message = AppConstants.unauthorizedErrorMessage;
         } else if (error.response?.data != null) {
-          message = error.response?.data['message'] ?? message;
+          final responseData = error.response?.data;
+          if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+            message = responseData['message'] as String;
+          }
         }
         break;
       default:
