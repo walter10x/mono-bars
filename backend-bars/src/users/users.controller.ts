@@ -1,7 +1,9 @@
-import { Controller, Post, Get, Put, Delete, Param, Body, NotFoundException, ForbiddenException, Req } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Param, Body, NotFoundException, ForbiddenException, Req, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './user.schema';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -28,21 +30,36 @@ export class UsersController {
     return user;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: Partial<CreateUserDto>, @Req() req): Promise<User> {
+  async update(@Param('id') id: string, @Body() updateUserDto: Partial<CreateUserDto>, @Request() req): Promise<User> {
     // Debes validar que el usuario autenticado solo pueda actualizar su propia cuenta (req.user.id === id)
     // y evitar cambiar email o role (ya controlado en servicio)
-    // Aquí simulo el chequeo, reemplaza con guard real cuando tengas auth:
-    if (req.user?.id !== id) {
+    if (req.user.sub !== id) {
       throw new ForbiddenException('No tienes permiso para actualizar este usuario');
     }
     return this.usersService.update(id, updateUserDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/change-password')
+  async changePassword(
+    @Param('id') id: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Request() req
+  ): Promise<{ message: string }> {
+    // Verificar que sea el mismo usuario
+    if (req.user.sub !== id) {
+      throw new ForbiddenException('No tienes permiso para cambiar la contraseña de otro usuario');
+    }
+    return this.usersService.changePassword(id, changePasswordDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string, @Req() req): Promise<void> {
+  async remove(@Param('id') id: string, @Request() req): Promise<void> {
     // Igual que en update, validar que solo el propio usuario pueda eliminar su cuenta
-    if (req.user?.id !== id) {
+    if (req.user.sub !== id) {
       throw new ForbiddenException('No tienes permiso para eliminar este usuario');
     }
     return this.usersService.remove(id);

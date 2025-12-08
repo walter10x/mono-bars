@@ -139,6 +139,26 @@ class AuthController extends _$AuthController {
     }
   }
 
+  /// Actualizar datos del usuario en el estado
+  void updateUserData(User user) {
+    if (state.isAuthenticated) {
+      state = state.copyWith(user: user);
+      // También actualizar en almacenamiento local
+      _storageService.saveUserData(user.toJson());
+    }
+  }
+
+  /// Cierra la sesión de todos los dispositivos
+  Future<void> logoutAllDevices() async {
+    // TODO: Implementar logout de todos los dispositivos
+    await logout();
+  }
+
+  /// Elimina la cuenta del usuario
+  Future<void> deleteAccount() async {
+    // TODO: Implementar eliminación de cuenta
+  }
+
   /// Envía email de recuperación de contraseña
   Future<bool> forgotPassword({required String email}) async {
     state = state.copyWith(isLoading: true);

@@ -1,9 +1,10 @@
-import { Injectable, ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -87,6 +88,37 @@ export class UsersService {
     }
     this.logger.log(`Usuario con id ${id} actualizado correctamente`);
     return updatedUser;
+  }
+
+  async changePassword(id: string, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
+    this.logger.log(`Intentando cambiar contraseña para usuario con id: ${id}`);
+
+    const user = await this.findOne(id);
+    
+    // Verificar contraseña actual
+    const isValid = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      user.password
+    );
+    
+    if (!isValid) {
+      this.logger.warn(`Intento de cambio de contraseña con contraseña actual incorrecta para id: ${id}`);
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
+    }
+    
+    // Actualizar contraseña
+    const hashedPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
+    await this.userModel.findByIdAndUpdate(id, { password: hashedPassword });
+    
+    // Log de cambio exitoso
+    console.log('🔐 CAMBIO DE CONTRASEÑA EXITOSO');
+    console.log(`📧 Usuario: ${user.email}`);
+    console.log(`🆔 ID: ${id}`);
+    console.log(`⏰ Fecha: ${new Date().toISOString()}`);
+    console.log('-----------------------------------');
+    
+    this.logger.log(`Contraseña cambiada exitosamente para usuario con id: ${id}`);
+    return { message: 'Contraseña actualizada correctamente' };
   }
 
   async remove(id: string): Promise<void> {

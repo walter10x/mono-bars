@@ -6,6 +6,7 @@ import '../modules/auth/controllers/auth_controller.dart';
 import '../modules/auth/views/login_screen.dart';
 import '../modules/auth/views/register_screen.dart';
 import '../modules/home/views/home_screen.dart';
+import '../modules/profile/views/profile_screen.dart';
 
 // Importaciones temporales para pantallas que crearemos después
 // import '../modules/auth/views/forgot_password_screen.dart';
@@ -82,11 +83,7 @@ class AppRouter {
         GoRoute(
           path: profile,
           name: 'profile',
-          builder: (context, state) => const Scaffold(
-            body: Center(
-              child: Text('Pantalla de Perfil - Por implementar'),
-            ),
-          ),
+          builder: (context, state) => const ProfileScreen(),
         ),
 
         // Rutas de bares
