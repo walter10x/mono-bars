@@ -29,8 +29,17 @@ export class UsersService {
       role,
     });
 
-    this.logger.log(`Usuario registrado: ${createUserDto.email}`);
-    return newUser.save();
+    const savedUser = await newUser.save();
+    
+    // Log detallado de registro exitoso
+    console.log('✅ REGISTRO EXITOSO');
+    console.log(`📧 Usuario registrado: ${savedUser.email}`);
+    console.log(`👤 Nombre: ${savedUser.name}`);
+    console.log(`🎭 Rol: ${savedUser.role}`);
+    console.log(`🆔 ID: ${savedUser._id}`);
+    console.log('-----------------------------------');
+    
+    return savedUser;
   }
 
   async findByEmail(email: string): Promise<User | null> {
