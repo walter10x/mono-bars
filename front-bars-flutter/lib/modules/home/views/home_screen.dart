@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../auth/controllers/auth_controller.dart';
 import '../../auth/models/auth_models.dart';
@@ -208,9 +209,7 @@ class HomeScreen extends ConsumerWidget {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        ref.read(authControllerProvider.notifier).logout();
-                      },
+                      onPressed: () => _showLogoutConfirmation(context, ref),
                       icon: const Icon(Icons.logout),
                       label: const Text(
                         'Cerrar Sesión',
@@ -235,7 +234,7 @@ class HomeScreen extends ConsumerWidget {
                   
                   // Nota informativa
                   Text(
-                    '🚀 Próximamente más funcionalidades',
+                    ' Próximamente más funcionalidades',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white.withOpacity(0.8),
@@ -249,6 +248,119 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showLogoutConfirmation(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.logout_rounded,
+                color: Colors.orange.shade700,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Cerrar Sesión',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          '¿Estás seguro de que deseas cerrar sesión?',
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange.shade600,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Cerrar Sesión',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      // Mostrar indicador de carga
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: Color(0xFF6366F1),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Cerrando sesión...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Ejecutar logout
+      await ref.read(authControllerProvider.notifier).logout();
+
+      // Cerrar di álogo de loading y navegar al login
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Cerrar loading dialog
+        context.go('/login');
+      }
+    }
   }
 
   Widget _buildInfoRow({
