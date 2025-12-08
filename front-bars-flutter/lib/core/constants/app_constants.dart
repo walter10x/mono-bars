@@ -38,5 +38,5 @@ class AppConstants {
   static const String genericErrorMessage = 'Ha ocurrido un error inesperado';
   static const String networkErrorMessage = 'Error de conexión. Verifica tu internet';
   static const String timeoutErrorMessage = 'La operación ha tardado demasiado';
-  static const String unauthorizedErrorMessage = 'Sesión expirada. Inicia sesión nuevamente';
+  static const String unauthorizedErrorMessage = 'Credenciales inválidas';
 }
