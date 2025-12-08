@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
 import '../constants/app_constants.dart';
+import '../errors/http_exception.dart';
 import '../storage/secure_storage_service.dart';
 
 /// Configuración del cliente HTTP usando Dio
@@ -115,7 +116,7 @@ class DioClient {
         await _storageService.saveRefreshToken(data['refreshToken'] as String);
       }
     } else {
-      throw Exception('Failed to refresh token');
+      throw HttpException('Failed to refresh token');
     }
   }
 
@@ -204,20 +205,24 @@ class DioClient {
         break;
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
-        if (statusCode == 401) {
-          message = AppConstants.unauthorizedErrorMessage;
-        } else if (error.response?.data != null) {
+        // Intentar obtener el mensaje del backend primero
+        if (error.response?.data != null) {
           final responseData = error.response?.data;
           if (responseData is Map<String, dynamic> && responseData['message'] != null) {
             message = responseData['message'] as String;
+          } else if (statusCode == 401) {
+            // Solo usar la constante si no hay mensaje del backend
+            message = AppConstants.unauthorizedErrorMessage;
           }
+        } else if (statusCode == 401) {
+          message = AppConstants.unauthorizedErrorMessage;
         }
         break;
       default:
         break;
     }
     
-    return Exception(message);
+    return HttpException(message);
   }
 
   void dispose() {

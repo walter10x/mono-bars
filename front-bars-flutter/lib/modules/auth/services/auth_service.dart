@@ -340,8 +340,10 @@ class AuthServiceImpl implements AuthService {
               statusCode: statusCode,
             );
           case 401:
+            // Usar el mensaje del backend si está disponible
+            // Esto permite diferenciar entre "credenciales inválidas" y "sesión expirada"
             return AuthFailure(
-              message: 'Credenciales inválidas o sesión expirada',
+              message: message.isEmpty ? 'Credenciales inválidas' : message,
               statusCode: statusCode,
             );
           case 403:
