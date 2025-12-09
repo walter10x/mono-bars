@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../auth/controllers/auth_controller.dart';
+import '../../auth/models/auth_models.dart';
 import '../../users/models/user_models.dart';
 import '../models/profile_models.dart';
 import '../services/profile_service.dart';
@@ -18,7 +19,7 @@ class ProfileController extends _$ProfileController {
     if (authState.user != null) {
       return ProfileState.loaded(authState.user!);
     }
-    return Profile State.initial();
+    return ProfileState.initial();
   }
 
   /// Actualizar perfil del usuario
