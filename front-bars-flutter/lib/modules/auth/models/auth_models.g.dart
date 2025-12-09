@@ -103,23 +103,31 @@ Map<String, dynamic> _$ChangePasswordRequestToJson(
 User _$UserFromJson(Map<String, dynamic> json) => User(
       id: json['id'] as String,
       email: json['email'] as String,
+      name: json['name'] as String?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
       avatar: json['avatar'] as String?,
+      role: json['role'] as String?,
       roles:
           (json['roles'] as List<dynamic>?)?.map((e) => e as String).toList() ??
               const [],
       isActive: json['isActive'] as bool? ?? true,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'id': instance.id,
       'email': instance.email,
+      'name': instance.name,
       'firstName': instance.firstName,
       'lastName': instance.lastName,
       'avatar': instance.avatar,
+      'role': instance.role,
       'roles': instance.roles,
       'isActive': instance.isActive,
       'createdAt': instance.createdAt?.toIso8601String(),

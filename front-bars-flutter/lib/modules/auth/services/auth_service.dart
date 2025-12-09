@@ -43,14 +43,14 @@ class AuthServiceImpl implements AuthService {
       if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
         final data = response.data!;
         
-        // Adaptar la respuesta del backend al formato esperado
-        // El backend devuelve: {access_token, email, role}
-        // Necesitamos convertir a: {accessToken, refreshToken?, user: {id, email, role, ...}}
-        final adaptedData = {
+        // Adaptar response del backend a formato esperado por el modelo
+        // Backend ahora envía: { access_token, user: {...} }
+        final Map<String, dynamic> adaptedData = {
           'accessToken': data['access_token'] ?? data['accessToken'],
           'refreshToken': data['refresh_token'] ?? data['refreshToken'],
-          'user': {
-            'id': data['id'] ?? data['sub'] ?? '', // ID del usuario
+          'user': data['user'] ?? {
+            // Fallback si no viene user (compatibilidad con versión antigua)
+            'id': data['id'] ?? data['sub'] ?? '',
             'email': data['email'] ?? '',
             'name': data['name'],
             'firstName': data['firstName'] ?? data['first_name'],
