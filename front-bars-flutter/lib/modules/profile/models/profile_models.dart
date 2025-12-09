@@ -1,39 +1,10 @@
 import 'package:equatable/equatable.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:flutter/material.dart';
 
 import '../../auth/models/auth_models.dart';
 
-part 'profile_models.g.dart';
-
-/// Request para cambiar contraseña
-@JsonSerializable()
-class ChangePasswordRequest extends Equatable {
-  final String currentPassword;
-  final String newPassword;
-  final String confirmPassword;
-
-  const ChangePasswordRequest({
-    required this.currentPassword,
-    required this.newPassword,
-    required this.confirmPassword,
-  });
-
-  factory ChangePasswordRequest.fromJson(Map<String, dynamic> json) =>
-      _$ChangePasswordRequestFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ChangePasswordRequestToJson(this);
-
-  @override
-  List<Object?> get props => [currentPassword, newPassword, confirmPassword];
-}
-
-/// Niveles de fortaleza de contraseña
-enum PasswordStrength {
-  weak,
-  medium,
-  strong,
-  veryStrong,
-}
+/// Enum para fortaleza de contraseña
+enum PasswordStrength { weak, medium, strong, veryStrong }
 
 extension PasswordStrengthExtension on PasswordStrength {
   String get label {
@@ -62,16 +33,16 @@ extension PasswordStrengthExtension on PasswordStrength {
     }
   }
 
-  int get colorValue {
+  Color get color {
     switch (this) {
       case PasswordStrength.weak:
-        return 0xFFEF4444; // Red
+        return const Color(0xFFEF4444); // Red
       case PasswordStrength.medium:
-        return 0xFFF59E0B; // Amber
+        return const Color(0xFFF59E0B); // Amber
       case PasswordStrength.strong:
-        return 0xFF3B82F6; // Blue
+        return const Color(0xFF3B82F6); // Blue
       case PasswordStrength.veryStrong:
-        return 0xFF10B981; // Green
+        return const Color(0xFF10B981); // Green
     }
   }
 }
@@ -85,7 +56,6 @@ enum ProfileStatus {
 }
 
 /// Estado del módulo de perfil
-@JsonSerializable()
 class ProfileState extends Equatable {
   final ProfileStatus status;
   final User? user;
@@ -114,11 +84,6 @@ class ProfileState extends Equatable {
         status: ProfileStatus.error,
         errorMessage: message,
       );
-
-  factory ProfileState.fromJson(Map<String, dynamic> json) =>
-      _$ProfileStateFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ProfileStateToJson(this);
 
   @override
   List<Object?> get props => [
