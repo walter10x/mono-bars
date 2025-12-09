@@ -7,6 +7,7 @@ import '../modules/auth/views/login_screen.dart';
 import '../modules/auth/views/register_screen.dart';
 import '../modules/home/views/home_screen.dart';
 import '../modules/profile/views/profile_screen.dart';
+import '../modules/profile/views/change_password_screen.dart';
 
 // Importaciones temporales para pantallas que crearemos después
 // import '../modules/auth/views/forgot_password_screen.dart';
@@ -18,6 +19,7 @@ class AppRouter {
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String profile = '/profile';
+  static const String changePassword = '/profile/change-password';
   static const String bars = '/bars';
   static const String barDetail = '/bars/:id';
   static const String menus = '/menus';
@@ -84,6 +86,12 @@ class AppRouter {
           path: profile,
           name: 'profile',
           builder: (context, state) => const ProfileScreen(),
+        ),
+
+        GoRoute(
+          path: changePassword,
+          name: 'changePassword',
+          builder: (context, state) => const ChangePasswordScreen(),
         ),
 
         // Rutas de bares
