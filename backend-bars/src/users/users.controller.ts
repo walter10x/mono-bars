@@ -33,9 +33,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: Partial<CreateUserDto>, @Request() req): Promise<User> {
-    // Debes validar que el usuario autenticado solo pueda actualizar su propia cuenta (req.user.id === id)
-    // y evitar cambiar email o role (ya controlado en servicio)
-    if (req.user.sub !== id) {
+    // Validar que el usuario solo pueda actualizar su propia cuenta (comparando como strings)
+    if (String(req.user.userId) !== String(id)) {
       throw new ForbiddenException('No tienes permiso para actualizar este usuario');
     }
     return this.usersService.update(id, updateUserDto);
@@ -48,18 +47,26 @@ export class UsersController {
     @Body() changePasswordDto: ChangePasswordDto,
     @Request() req
   ): Promise<{ message: string }> {
-    // Verificar que sea el mismo usuario
-    if (req.user.sub !== id) {
-      throw new ForbiddenException('No tienes permiso para cambiar la contraseña de otro usuario');
-    }
-    return this.usersService.changePassword(id, changePasswordDto);
+    // NOTA: No validamos ID aquí porque la seguridad está en el servicio
+    // que valida la contraseña actual. Solo el usuario con la contraseña
+    // correcta puede cambiarla, independientemente del ID en la URL.
+    // El usuario autenticado solo puede cambiar su propia contraseña porque
+    // solo él conoce su contraseña actual.
+    
+    console.log('🔐 CAMBIAR CONTRASEÑA');
+    console.log('Usuario autenticado:', req.user.email);
+    console.log('ID del usuario:', req.user.userId);
+    console.log('-----------------------------------');
+
+    // Usamos el ID del JWT (usuario autenticado) en lugar del parámetro
+    return this.usersService.changePassword(req.user.userId, changePasswordDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Request() req): Promise<void> {
-    // Igual que en update, validar que solo el propio usuario pueda eliminar su cuenta
-    if (req.user.sub !== id) {
+    // Validar que solo el usuario pueda eliminar su propia cuenta (comparando como strings)
+    if (String(req.user.userId) !== String(id)) {
       throw new ForbiddenException('No tienes permiso para eliminar este usuario');
     }
     return this.usersService.remove(id);
