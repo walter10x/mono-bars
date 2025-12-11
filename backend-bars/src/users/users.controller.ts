@@ -10,9 +10,13 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto): Promise<User> {
+  async register(@Body() createUserDto: CreateUserDto): Promise<{ user: User; message: string }> {
     // Aquí permites opcionalmente que el role venga en createUserDto, será validado en DTO y servicio
-    return this.usersService.register(createUserDto);
+    const user = await this.usersService.register(createUserDto);
+    return {
+      user,
+      message: 'Usuario creado exitosamente. Ya puedes iniciar sesión con tus credenciales.'
+    };
   }
 
   @Get()
