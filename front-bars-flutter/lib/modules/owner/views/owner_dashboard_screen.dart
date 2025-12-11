@@ -130,11 +130,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Gestión de promociones próximamente'),
-                            ),
-                          );
+                          // Navegar a gestión de promociones
+                          context.go('/owner/promotions');
                         },
                         child: _buildStatCard(
                           icon: Icons.local_offer,
@@ -211,12 +208,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   description: 'Crea ofertas para atraer clientes',
                   color: const Color(0xFFEF4444),
                   onTap: () {
-                    // TODO: Navegar a crear promoción
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Función disponible próximamente'),
-                      ),
-                    );
+                    // Navegar a gestión de promociones
+                    context.go('/owner/promotions');
                   },
                 ),
 

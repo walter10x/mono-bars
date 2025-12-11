@@ -13,9 +13,11 @@ import '../modules/profile/views/change_password_screen.dart';
 import '../modules/owner/views/owner_dashboard_screen.dart';
 import '../modules/owner/views/owner_bars_management_screen.dart';
 import '../modules/owner/views/owner_menus_management_screen.dart';
+import '../modules/owner/views/owner_promotions_management_screen.dart';
 import '../modules/owner/views/owner_statistics_screen.dart';
 import '../modules/owner/views/bar_form_screen.dart';
 import '../modules/owner/views/menu_form_screen.dart';
+import '../modules/owner/views/promotion_form_screen.dart';
 
 // Client screens
 import '../modules/client/views/client_home_screen.dart';
@@ -38,6 +40,9 @@ class AppRouter {
   static const String ownerMenus = '/owner/menus';
   static const String ownerMenuCreate = '/owner/menus/create/:barId';
   static const String ownerMenuEdit = '/owner/menus/:id/edit';
+  static const String ownerPromotions = '/owner/promotions';
+  static const String ownerPromotionCreate = '/owner/promotions/create/:barId';
+  static const String ownerPromotionEdit = '/owner/promotions/:id/edit';
   static const String ownerStatistics = '/owner/statistics';
   
   // Rutas de client
@@ -184,6 +189,32 @@ class AppRouter {
           },
         ),
         
+        GoRoute(
+          path: ownerPromotions,
+          name: 'ownerPromotions',
+          builder: (context, state) => const OwnerNavigationWrapper(
+            initialIndex: 3,
+          ),
+        ),
+        
+        GoRoute(
+          path: ownerPromotionCreate,
+          name: 'ownerPromotionCreate',
+          builder: (context, state) {
+            final barId = state.pathParameters['barId'];
+            return PromotionFormScreen(barId: barId);
+          },
+        ),
+        
+        GoRoute(
+          path: ownerPromotionEdit,
+          name: 'ownerPromotionEdit',
+          builder: (context, state) {
+            final promotionId = state.pathParameters['id'];
+            return PromotionFormScreen(promotionId: promotionId);
+          },
+        ),
+        
         // Rutas de Client
         GoRoute(
           path: clientHome,
@@ -296,6 +327,7 @@ class _OwnerNavigationWrapperState extends ConsumerState<OwnerNavigationWrapper>
     OwnerDashboardScreen(),
     OwnerBarsManagementScreen(),
     OwnerMenusManagementScreen(),
+    OwnerPromotionsManagementScreen(),
     OwnerStatisticsScreen(),
   ];
   
@@ -303,6 +335,7 @@ class _OwnerNavigationWrapperState extends ConsumerState<OwnerNavigationWrapper>
     AppRouter.ownerDashboard,
     AppRouter.ownerBars,
     AppRouter.ownerMenus,
+    AppRouter.ownerPromotions,
     AppRouter.ownerStatistics,
   ];
 
@@ -334,6 +367,10 @@ class _OwnerNavigationWrapperState extends ConsumerState<OwnerNavigationWrapper>
           BottomNavigationBarItem(
             icon: Icon(Icons.restaurant_menu),
             label: 'Menús',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_offer),
+            label: 'Promociones',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics),
