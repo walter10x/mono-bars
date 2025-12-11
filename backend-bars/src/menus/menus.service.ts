@@ -38,6 +38,39 @@ export class MenusService {
     return this.menuModel.find().exec();
   }
 
+  async findByOwner(ownerId: string): Promise<Menu[]> {
+    this.logger.log(`Buscando menús del propietario: ${ownerId}`);
+    
+    // Obtener menús de todos los bares del owner usando aggregation
+    const ownerObjectId = new Types.ObjectId(ownerId);
+    
+    return this.menuModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'bars',
+            localField: 'barId',
+            foreignField: '_id',
+            as: 'bar',
+          },
+        },
+        {
+          $unwind: '$bar',
+        },
+        {
+          $match: {
+            'bar.ownerId': ownerObjectId,
+          },
+        },
+        {
+          $project: {
+            bar: 0, // Excluir el bar del resultado
+          },
+        },
+      ])
+      .exec();
+  }
+
   async findOne(id: string): Promise<Menu> {
     const menu = await this.menuModel.findById(id).exec();
     if (!menu) {

@@ -4,7 +4,17 @@ import { Document, Types } from 'mongoose';
 
 export type MenuDocument = Menu & Document;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    transform: function (_doc: any, ret: any) {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class Menu {
   @Prop({ required: true })
   name: string;

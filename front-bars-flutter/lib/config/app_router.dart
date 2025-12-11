@@ -15,6 +15,7 @@ import '../modules/owner/views/owner_bars_management_screen.dart';
 import '../modules/owner/views/owner_menus_management_screen.dart';
 import '../modules/owner/views/owner_statistics_screen.dart';
 import '../modules/owner/views/bar_form_screen.dart';
+import '../modules/owner/views/menu_form_screen.dart';
 
 // Client screens
 import '../modules/client/views/client_home_screen.dart';
@@ -35,6 +36,8 @@ class AppRouter {
   static const String ownerBarCreate = '/owner/bars/create';
   static const String ownerBarEdit = '/owner/bars/:id/edit';
   static const String ownerMenus = '/owner/menus';
+  static const String ownerMenuCreate = '/owner/menus/create/:barId';
+  static const String ownerMenuEdit = '/owner/menus/:id/edit';
   static const String ownerStatistics = '/owner/statistics';
   
   // Rutas de client
@@ -160,6 +163,24 @@ class AppRouter {
           builder: (context, state) {
             final barId = state.pathParameters['id'];
             return BarFormScreen(barId: barId);
+          },
+        ),
+        
+        GoRoute(
+          path: ownerMenuCreate,
+          name: 'ownerMenuCreate',
+          builder: (context, state) {
+            final barId = state.pathParameters['barId'];
+            return MenuFormScreen(barId: barId);
+          },
+        ),
+        
+        GoRoute(
+          path: ownerMenuEdit,
+          name: 'ownerMenuEdit',
+          builder: (context, state) {
+            final menuId = state.pathParameters['id'];
+            return MenuFormScreen(menuId: menuId);
           },
         ),
         

@@ -98,6 +98,14 @@ export class MenusController {
     return this.menusService.findAll();
   }
 
+  @Get('my-menus')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner', 'admin')
+  async getMyMenus(@Request() req) {
+    this.logger.log(`Obteniendo menús del propietario: ${req.user.userId}`);
+    return this.menusService.findByOwner(req.user.userId);
+  }
+
   @Get('bar/:barId')
   async findByBar(@Param('barId') barId: string) {
     return this.menusService.findAll(barId);

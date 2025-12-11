@@ -3,27 +3,65 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'menu_models.g.dart';
 
-/// Modelo de menú
+/// Item del menú (producto) - Adaptado al backend
+@JsonSerializable()
+class MenuItem extends Equatable {
+  final String name;
+  final String? description;
+  final double price;
+  final String? photoUrl;
+
+  const MenuItem({
+    required this.name,
+    this.description,
+    required this.price,
+    this.photoUrl,
+  });
+
+  factory MenuItem.fromJson(Map<String, dynamic> json) =>
+      _$MenuItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MenuItemToJson(this);
+
+  @override
+  List<Object?> get props => [name, description, price, photoUrl];
+
+  MenuItem copyWith({
+    String? name,
+    String? description,
+    double? price,
+    String? photoUrl,
+  }) {
+    return MenuItem(
+      name: name ?? this.name,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      photoUrl: photoUrl ?? this.photoUrl,
+    );
+  }
+}
+
+/// Modelo principal de Menú - Adaptado al backend
 @JsonSerializable()
 class Menu extends Equatable {
   final String id;
   final String name;
   final String? description;
-  final String barId;
-  final List<MenuCategory> categories;
-  final bool isActive;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String barId; // Relación con Bar
+  final List<MenuItem> items;
+  final String? photoUrl;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const Menu({
     required this.id,
     required this.name,
     this.description,
     required this.barId,
-    this.categories = const [],
-    this.isActive = true,
-    required this.createdAt,
-    required this.updatedAt,
+    this.items = const [],
+    this.photoUrl,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory Menu.fromJson(Map<String, dynamic> json) => _$MenuFromJson(json);
@@ -36,108 +74,60 @@ class Menu extends Equatable {
         name,
         description,
         barId,
-        categories,
-        isActive,
+        items,
+        photoUrl,
         createdAt,
         updatedAt,
       ];
+
+  Menu copyWith({
+    String? id,
+    String? name,
+    String? description,
+    String? barId,
+    List<MenuItem>? items,
+    String? photoUrl,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Menu(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      barId: barId ?? this.barId,
+      items: items ?? this.items,
+      photoUrl: photoUrl ?? this.photoUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  /// Número de items en el menú
+  int get itemCount => items.length;
+
+  /// Precio promedio de items
+  double get averagePrice {
+    if (items.isEmpty) return 0.0;
+    final total = items.fold<double>(0.0, (sum, item) => sum + item.price);
+    return total / items.length;
+  }
 }
 
-/// Modelo de categoría de menú
-@JsonSerializable()
-class MenuCategory extends Equatable {
-  final String id;
-  final String name;
-  final String? description;
-  final int order;
-  final List<MenuItem> items;
-  final bool isActive;
-
-  const MenuCategory({
-    required this.id,
-    required this.name,
-    this.description,
-    this.order = 0,
-    this.items = const [],
-    this.isActive = true,
-  });
-
-  factory MenuCategory.fromJson(Map<String, dynamic> json) =>
-      _$MenuCategoryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$MenuCategoryToJson(this);
-
-  @override
-  List<Object?> get props => [id, name, description, order, items, isActive];
-}
-
-/// Modelo de item de menú
-@JsonSerializable()
-class MenuItem extends Equatable {
-  final String id;
-  final String name;
-  final String? description;
-  final double price;
-  final String? image;
-  final List<String> allergens;
-  final List<String> tags;
-  final bool isAvailable;
-  final bool isVegetarian;
-  final bool isVegan;
-  final bool isGlutenFree;
-  final int preparationTime; // en minutos
-  final int order;
-
-  const MenuItem({
-    required this.id,
-    required this.name,
-    this.description,
-    required this.price,
-    this.image,
-    this.allergens = const [],
-    this.tags = const [],
-    this.isAvailable = true,
-    this.isVegetarian = false,
-    this.isVegan = false,
-    this.isGlutenFree = false,
-    this.preparationTime = 0,
-    this.order = 0,
-  });
-
-  factory MenuItem.fromJson(Map<String, dynamic> json) =>
-      _$MenuItemFromJson(json);
-
-  Map<String, dynamic> toJson() => _$MenuItemToJson(this);
-
-  @override
-  List<Object?> get props => [
-        id,
-        name,
-        description,
-        price,
-        image,
-        allergens,
-        tags,
-        isAvailable,
-        isVegetarian,
-        isVegan,
-        isGlutenFree,
-        preparationTime,
-        order,
-      ];
-}
-
-/// Request para crear menú
+/// Request para crear un menú
 @JsonSerializable()
 class CreateMenuRequest extends Equatable {
   final String name;
   final String? description;
-  final String barId;
+  final String barId; // REQUERIDO
+  final List<MenuItem>? items;
+  final String? photoUrl;
 
   const CreateMenuRequest({
     required this.name,
     this.description,
     required this.barId,
+    this.items,
+    this.photoUrl,
   });
 
   factory CreateMenuRequest.fromJson(Map<String, dynamic> json) =>
@@ -146,71 +136,40 @@ class CreateMenuRequest extends Equatable {
   Map<String, dynamic> toJson() => _$CreateMenuRequestToJson(this);
 
   @override
-  List<Object?> get props => [name, description, barId];
+  List<Object?> get props => [
+        name,
+        description,
+        barId,
+        items,
+        photoUrl,
+      ];
 }
 
-/// Filtros para menús
+/// Request para actualizar un menú
 @JsonSerializable()
-class MenuFilters extends Equatable {
-  final String? search;
-  final String? barId;
-  final bool? isActive;
-  final int page;
-  final int limit;
+class UpdateMenuRequest extends Equatable {
+  final String? name;
+  final String? description;
+  final List<MenuItem>? items;
+  final String? photoUrl;
 
-  const MenuFilters({
-    this.search,
-    this.barId,
-    this.isActive,
-    this.page = 1,
-    this.limit = 20,
+  const UpdateMenuRequest({
+    this.name,
+    this.description,
+    this.items,
+    this.photoUrl,
   });
 
-  factory MenuFilters.fromJson(Map<String, dynamic> json) =>
-      _$MenuFiltersFromJson(json);
+  factory UpdateMenuRequest.fromJson(Map<String, dynamic> json) =>
+      _$UpdateMenuRequestFromJson(json);
 
-  Map<String, dynamic> toJson() => _$MenuFiltersToJson(this);
-
-  Map<String, dynamic> toQueryParameters() {
-    final params = <String, dynamic>{};
-    
-    if (search != null && search!.isNotEmpty) params['search'] = search;
-    if (barId != null && barId!.isNotEmpty) params['barId'] = barId;
-    if (isActive != null) params['isActive'] = isActive.toString();
-    params['page'] = page.toString();
-    params['limit'] = limit.toString();
-    
-    return params;
-  }
+  Map<String, dynamic> toJson() => _$UpdateMenuRequestToJson(this);
 
   @override
-  List<Object?> get props => [search, barId, isActive, page, limit];
-}
-
-/// Response para lista de menús
-@JsonSerializable()
-class MenusListResponse extends Equatable {
-  final List<Menu> menus;
-  final int total;
-  final int page;
-  final int limit;
-  final bool hasNext;
-  final bool hasPrev;
-
-  const MenusListResponse({
-    required this.menus,
-    required this.total,
-    required this.page,
-    required this.limit,
-    required this.hasNext,
-    required this.hasPrev,
-  });
-
-  factory MenusListResponse.fromJson(Map<String, dynamic> json) =>
-      _$MenusListResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$MenusListResponseToJson(this);
-
-  @override
-  List<Object?> get props => [menus, total, page, limit, hasNext, hasPrev];
+  List<Object?> get props => [
+        name,
+        description,
+        items,
+        photoUrl,
+      ];
 }

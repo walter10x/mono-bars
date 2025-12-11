@@ -109,11 +109,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Gestión de menús próximamente'),
-                            ),
-                          );
+                          // Navegar a gestión de menús
+                          context.go('/owner/menus');
                         },
                         child: _buildStatCard(
                           icon: Icons.restaurant_menu,
@@ -201,12 +198,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   description: 'Añade un nuevo menú a tus bares',
                   color: const Color(0xFFF59E0B),
                   onTap: () {
-                    // TODO: Navegar a crear menú
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Función disponible próximamente'),
-                      ),
-                    );
+                    // Navegar a gestión de menús
+                    context.go('/owner/menus');
                   },
                 ),
 

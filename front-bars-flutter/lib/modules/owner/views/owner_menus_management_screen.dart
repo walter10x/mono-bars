@@ -1,12 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:front_bars_flutter/core/utils/extensions.dart';
+import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
+import 'package:front_bars_flutter/modules/menus/controllers/menus_controller.dart';
+import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
 
 /// Pantalla de gestión de menús para propietarios
-class OwnerMenusManagementScreen extends ConsumerWidget {
+class OwnerMenusManagementScreen extends ConsumerStatefulWidget {
   const OwnerMenusManagementScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OwnerMenusManagementScreen> createState() =>
+      _OwnerMenusManagementScreenState();
+}
+
+class _OwnerMenusManagementScreenState
+    extends ConsumerState<OwnerMenusManagementScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar bares del owner para el selector
+    Future.microtask(() {
+      ref.read(barsControllerProvider.notifier).loadMyBars();
+      // Cargar todos los menús inicialmente
+      ref.read(menusControllerProvider.notifier).loadMyMenus();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final menusState = ref.watch(menusControllerProvider);
+    final barsState = ref.watch(barsControllerProvider);
+    final menus = ref.watch(myMenusProvider);
+    final selectedBarId = ref.watch(selectedBarIdProvider);
+
+    // Listener para errores
+    ref.listen(menusControllerProvider, (previous, current) {
+      if (current.hasError) {
+        context.showErrorSnackBar(current.errorMessage!);
+        ref.read(menusControllerProvider.notifier).clearError();
+      }
+    });
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -50,18 +87,18 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
                       ],
                     ),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Función disponible próximamente'),
-                          ),
-                        );
-                      },
+                      onPressed: selectedBarId == null
+                          ? null
+                          : () {
+                              // Navegar a crear menú con bar pre-seleccionado
+                              context.push('/owner/menus/create/$selectedBarId');
+                            },
                       icon: const Icon(Icons.add),
                       label: const Text('Nuevo'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF6366F1),
+                        disabledBackgroundColor: Colors.white54,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 12,
@@ -75,46 +112,60 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Filtros por bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DropdownButton<String>(
-                    value: 'all',
-                    isExpanded: true,
-                    dropdownColor: const Color(0xFF6366F1),
-                    underline: const SizedBox(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+              // Selector de Bar
+              if (barsState.status == BarsStatus.loaded &&
+                  barsState.bars.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'all',
-                        child: Text('Todos los bares'),
+                    child: DropdownButton<String?>(
+                      value: selectedBarId,
+                      hint: const Text(
+                        'Selecciona un bar',
+                        style: TextStyle(color: Colors.white70),
                       ),
-                      DropdownMenuItem(
-                        value: 'bar1',
-                        child: Text('El Rincón del Jazz'),
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF6366F1),
+                      underline: const SizedBox(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
-                      DropdownMenuItem(
-                        value: 'bar2',
-                        child: Text('La Taberna Moderna'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'bar3',
-                        child: Text('Bar Central'),
-                      ),
-                    ],
-                    onChanged: (value) {},
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Todos los bares'),
+                        ),
+                        ...barsState.bars.map((bar) {
+                          return DropdownMenuItem<String?>(
+                            value: bar.id,
+                            child: Text(bar.nameBar),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (barId) {
+                        if (barId == null) {
+                          // Cargar todos los menús
+                          ref
+                              .read(menusControllerProvider.notifier)
+                              .loadMyMenus();
+                          ref
+                              .read(menusControllerProvider.notifier)
+                              .selectBar(null);
+                        } else {
+                          // Filtrar por bar
+                          ref.read(menusControllerProvider.notifier).selectBar(barId);
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
 
               const SizedBox(height: 24),
 
@@ -128,50 +179,7 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
                       topRight: Radius.circular(30),
                     ),
                   ),
-                  child: ListView(
-                    padding: const EdgeInsets.all(24.0),
-                    children: [
-                      _buildMenuCard(
-                        barName: 'El Rincón del Jazz',
-                        menuName: 'Carta de Bebidas',
-                        itemCount: 45,
-                        category: 'Bebidas',
-                        lastUpdated: '2 días atrás',
-                      ),
-                      const SizedBox(height: 16),
-                      _buildMenuCard(
-                        barName: 'El Rincón del Jazz',
-                        menuName: 'Tapas y Entrantes',
-                        itemCount: 28,
-                        category: 'Comida',
-                        lastUpdated: '1 semana atrás',
-                      ),
-                      const SizedBox(height: 16),
-                      _buildMenuCard(
-                        barName: 'La Taberna Moderna',
-                        menuName: 'Carta Principal',
-                        itemCount: 67,
-                        category: 'Completo',
-                        lastUpdated: '3 días atrás',
-                      ),
-                      const SizedBox(height: 16),
-                      _buildMenuCard(
-                        barName: 'La Taberna Moderna',
-                        menuName: 'Menú del Día',
-                        itemCount: 15,
-                        category: 'Comida',
-                        lastUpdated: 'Hoy',
-                      ),
-                      const SizedBox(height: 16),
-                      _buildMenuCard(
-                        barName: 'Bar Central',
-                        menuName: 'Cócteles Premium',
-                        itemCount: 32,
-                        category: 'Bebidas',
-                        lastUpdated: '5 días atrás',
-                      ),
-                    ],
-                  ),
+                  child: _buildContent(menusState.status, menus),
                 ),
               ),
             ],
@@ -181,29 +189,150 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuCard({
-    required String barName,
-    required String menuName,
-    required int itemCount,
-    required String category,
-    required String lastUpdated,
-  }) {
-    Color categoryColor;
-    IconData categoryIcon;
-
-    switch (category) {
-      case 'Bebidas':
-        categoryColor = const Color(0xFF3B82F6);
-        categoryIcon = Icons.local_bar;
-        break;
-      case 'Comida':
-        categoryColor = const Color(0xFFF59E0B);
-        categoryIcon = Icons.restaurant;
-        break;
-      default:
-        categoryColor = const Color(0xFF8B5CF6);
-        categoryIcon = Icons.restaurant_menu;
+  Widget _buildContent(MenusStatus status, List<Menu> menus) {
+    if (status == MenusStatus.loading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
     }
+
+    if (status == MenusStatus.error) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red.shade300,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Error al cargar menús',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                final selectedBarId = ref.read(selectedBarIdProvider);
+                if (selectedBarId != null) {
+                  ref
+                      .read(menusControllerProvider.notifier)
+                      .loadMenusByBar(selectedBarId);
+                } else {
+                  ref.read(menusControllerProvider.notifier).loadMyMenus();
+                }
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (menus.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        final selectedBarId = ref.read(selectedBarIdProvider);
+        if (selectedBarId != null) {
+          await ref
+              .read(menusControllerProvider.notifier)
+              .loadMenusByBar(selectedBarId);
+        } else {
+          await ref.read(menusControllerProvider.notifier).loadMyMenus();
+        }
+      },
+      child: ListView.separated(
+        padding: const EdgeInsets.all(24.0),
+        itemCount: menus.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 16),
+        itemBuilder: (context, index) {
+          final menu = menus[index];
+          return _buildMenuCard(menu);
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    final selectedBarId = ref.watch(selectedBarIdProvider);
+    
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.restaurant_menu,
+              size: 80,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              selectedBarId != null
+                  ? 'No hay menús para este bar'
+                  : 'No tienes menús creados',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F2937),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              selectedBarId != null
+                  ? 'Crea tu primer menú para este bar'
+                  : 'Selecciona un bar y crea tu primer menú',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (selectedBarId != null) ...[
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () {
+                  context.push('/owner/menus/create/$selectedBarId');
+                },
+                icon: const Icon(Icons.add_business),
+                label: const Text('Crear Menú'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuCard(Menu menu) {
+    final barsState = ref.watch(barsControllerProvider);
+    
+    // Encontrar el bar correspondiente
+    final bar = barsState.bars.firstWhere(
+      (b) => b.id == menu.barId,
+      orElse: () => barsState.bars.first,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -229,12 +358,12 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
+                  color: const Color(0xFF8B5CF6).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  categoryIcon,
-                  color: categoryColor,
+                child: const Icon(
+                  Icons.restaurant_menu,
+                  color: Color(0xFF8B5CF6),
                   size: 24,
                 ),
               ),
@@ -244,7 +373,7 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      menuName,
+                      menu.name,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -253,7 +382,7 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      barName,
+                      bar.nameBar,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -262,26 +391,20 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  category,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: categoryColor,
-                  ),
-                ),
-              ),
             ],
           ),
+          if (menu.description != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              menu.description!,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade700,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
           const SizedBox(height: 16),
           Row(
             children: [
@@ -292,21 +415,7 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                '$itemCount productos',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Icon(
-                Icons.update,
-                size: 16,
-                color: Colors.grey.shade600,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Actualizado $lastUpdated',
+                '${menu.itemCount} productos',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -319,7 +428,9 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push('/owner/menus/${menu.id}/edit');
+                  },
                   icon: const Icon(Icons.edit, size: 18),
                   label: const Text('Editar'),
                   style: OutlinedButton.styleFrom(
@@ -333,13 +444,16 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.visibility, size: 18),
-                  label: const Text('Ver'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF10B981),
-                    side: const BorderSide(color: Color(0xFF10B981)),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    _showDeleteConfirmation(menu);
+                  },
+                  icon: const Icon(Icons.delete, size: 18),
+                  label: const Text('Eliminar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                    foregroundColor: Colors.red,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -347,6 +461,41 @@ class OwnerMenusManagementScreen extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(Menu menu) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Menú'),
+        content: Text(
+          '¿Estás seguro de que deseas eliminar el menú "${menu.name}"? Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              
+              final success = await ref
+                  .read(menusControllerProvider.notifier)
+                  .deleteMenu(menu.id);
+
+              if (success && mounted) {
+                context.showSuccessSnackBar('Menú eliminado exitosamente');
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Eliminar'),
           ),
         ],
       ),
