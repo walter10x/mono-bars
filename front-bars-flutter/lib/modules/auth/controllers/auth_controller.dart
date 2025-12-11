@@ -386,3 +386,27 @@ final authErrorProvider = Provider<String?>((ref) {
   final authState = ref.watch(authStateProvider);
   return authState.errorMessage;
 });
+
+/// Provider para obtener solo el rol del usuario actual
+final userRoleProvider = Provider<String?>((ref) {
+  final user = ref.watch(currentUserProvider);
+  return user?.role;
+});
+
+/// Provider para verificar si el usuario es owner
+final isOwnerProvider = Provider<bool>((ref) {
+  final role = ref.watch(userRoleProvider);
+  return role == 'owner' || role == 'admin';
+});
+
+/// Provider para verificar si el usuario es client
+final isClientProvider = Provider<bool>((ref) {
+  final role = ref.watch(userRoleProvider);
+  return role == 'client';
+});
+
+/// Provider para verificar si el usuario es admin
+final isAdminProvider = Provider<bool>((ref) {
+  final role = ref.watch(userRoleProvider);
+  return role == 'admin';
+});
