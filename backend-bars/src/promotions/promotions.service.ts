@@ -70,7 +70,20 @@ export class PromotionsService {
         },
         {
           $project: {
-            bar: 0, // Excluir el bar del resultado
+            _id: 0, // Excluir _id original
+            id: { $toString: '$_id' }, // Convertir _id a string como 'id'
+            title: 1,
+            description: 1,
+            type: { $literal: 'discount' }, // Tipo por defecto para compatibilidad con frontend
+            barId: { $toString: '$barId' }, // Convertir barId ObjectId a string
+            discountPercentage: 1,
+            validFrom: 1,
+            validUntil: 1,
+            isActive: 1,
+            photoUrl: 1,
+            termsAndConditions: 1,
+            createdAt: 1,
+            updatedAt: 1,
           },
         },
       ])

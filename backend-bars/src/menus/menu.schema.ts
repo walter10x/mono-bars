@@ -9,6 +9,9 @@ export type MenuDocument = Menu & Document;
   toJSON: {
     transform: function (_doc: any, ret: any) {
       ret.id = ret._id.toString();
+      if (ret.barId) {
+        ret.barId = ret.barId.toString();
+      }
       delete ret._id;
       delete ret.__v;
       return ret;

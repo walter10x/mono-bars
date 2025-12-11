@@ -64,7 +64,15 @@ export class MenusService {
         },
         {
           $project: {
-            bar: 0, // Excluir el bar del resultado
+            _id: 0, // Excluir _id original
+            id: { $toString: '$_id' }, // Convertir _id a string como 'id'
+            name: 1,
+            description: 1,
+            barId: { $toString: '$barId' }, // Convertir barId ObjectId a string
+            items: 1,
+            photoUrl: 1,
+            createdAt: 1,
+            updatedAt: 1,
           },
         },
       ])

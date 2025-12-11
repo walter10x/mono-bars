@@ -9,8 +9,15 @@ async function bootstrap() {
   // Permite servir archivos estáticos de la carpeta uploads vía URL /uploads
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
+  // Habilitar CORS
+  app.enableCors();
+
+  // Configurar graceful shutdown para liberar el puerto correctamente
+  app.enableShutdownHooks();
+
   await app.listen(3000);
 
   console.log('JWT_SECRET:', process.env.JWT_SECRET);
+  console.log(`Application is running on: http://localhost:3000`);
 }
 bootstrap();
