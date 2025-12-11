@@ -35,7 +35,7 @@ class PromotionsService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => Promotion.fromJson(json)).toList();
+        return data.map((json) => _mapBackendToFrontend(json as Map<String, dynamic>)).toList();
       } else {
         throw Exception('Error al cargar mis promociones: ${response.statusCode}');
       }
