@@ -92,20 +92,35 @@ class OwnerDashboardScreen extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildStatCard(
-                        icon: Icons.storefront,
-                        title: 'Mis Bares',
-                        value: '3',
-                        color: const Color(0xFF10B981),
+                      child: GestureDetector(
+                        onTap: () {
+                          // Navegar a gestión de bares
+                          context.go('/owner/bars');
+                        },
+                        child: _buildStatCard(
+                          icon: Icons.storefront,
+                          title: 'Mis Bares',
+                          value: '3',
+                          color: const Color(0xFF10B981),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildStatCard(
-                        icon: Icons.restaurant_menu,
-                        title: 'Menús',
-                        value: '12',
-                        color: const Color(0xFFF59E0B),
+                      child: GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Gestión de menús próximamente'),
+                            ),
+                          );
+                        },
+                        child: _buildStatCard(
+                          icon: Icons.restaurant_menu,
+                          title: 'Menús',
+                          value: '12',
+                          color: const Color(0xFFF59E0B),
+                        ),
                       ),
                     ),
                   ],
@@ -116,20 +131,38 @@ class OwnerDashboardScreen extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildStatCard(
-                        icon: Icons.local_offer,
-                        title: 'Promociones',
-                        value: '7',
-                        color: const Color(0xFFEF4444),
+                      child: GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Gestión de promociones próximamente'),
+                            ),
+                          );
+                        },
+                        child: _buildStatCard(
+                          icon: Icons.local_offer,
+                          title: 'Promociones',
+                          value: '7',
+                          color: const Color(0xFFEF4444),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildStatCard(
-                        icon: Icons.calendar_today,
-                        title: 'Reservas Hoy',
-                        value: '24',
-                        color: const Color(0xFF8B5CF6),
+                      child: GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Gestión de reservas próximamente'),
+                            ),
+                          );
+                        },
+                        child: _buildStatCard(
+                          icon: Icons.calendar_today,
+                          title: 'Reservas Hoy',
+                          value: '24',
+                          color: const Color(0xFF8B5CF6),
+                        ),
                       ),
                     ),
                   ],
@@ -155,12 +188,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   description: 'Registra un nuevo establecimiento',
                   color: const Color(0xFF10B981),
                   onTap: () {
-                    // TODO: Navegar a agregar bar
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Función disponible próximamente'),
-                      ),
-                    );
+                    // Navegar a gestión de bares
+                    context.go('/owner/bars');
                   },
                 ),
 

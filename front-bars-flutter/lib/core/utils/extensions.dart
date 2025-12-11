@@ -164,6 +164,14 @@ extension BuildContextExtensions on BuildContext {
     );
   }
 
+  /// Muestra un SnackBar informativo
+  void showInfoSnackBar(String message) {
+    showSnackBar(
+      message,
+      backgroundColor: Colors.blue,
+    );
+  }
+
   /// Navega a una ruta
   void pushNamed(String routeName, {Object? arguments}) {
     Navigator.of(this).pushNamed(routeName, arguments: arguments);
@@ -182,12 +190,8 @@ extension BuildContextExtensions on BuildContext {
       arguments: arguments,
     );
   }
-
-  /// Regresa a la pantalla anterior
-  void pop([Object? result]) {
-    Navigator.of(this).pop(result);
-  }
 }
+
 
 /// Extensiones para List
 extension ListExtensions<T> on List<T> {

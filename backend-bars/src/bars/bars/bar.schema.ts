@@ -2,7 +2,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-@Schema()
+@Schema({
+  timestamps: true, // Agrega createdAt y updatedAt automáticamente
+  toJSON: {
+    transform: function (_doc: any, ret: any) {
+      ret.id = ret._id.toString();
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class Bar extends Document {
   @Prop({ required: true, unique: true })
   nameBar: string;  // Nombre del bar para identificar

@@ -35,6 +35,13 @@ async create(@Body() createBarDto: CreateBarDto, @Request() req): Promise<Bar> {
   }
 }
 
+  @Get('my-bars')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner', 'admin')
+  async getMyBars(@Request() req): Promise<Bar[]> {
+    this.logger.log(`Obteniendo bares del propietario: ${req.user.userId}`);
+    return this.barsService.findByOwner(req.user.userId);
+  }
 
   @Get()
   async findAll(): Promise<Bar[]> {
@@ -51,16 +58,16 @@ async create(@Body() createBarDto: CreateBarDto, @Request() req): Promise<Bar> {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('owner', 'admin')
-  async update(@Param('id') id: string, @Body() updateBarDto: Partial<CreateBarDto>): Promise<Bar> {
+  async update(@Param('id') id: string, @Body() updateBarDto: Partial<CreateBarDto>, @Request() req): Promise<Bar> {
     this.logger.log(`Recibiendo solicitud para actualizar bar con id: ${id}`);
-    return this.barsService.update(id, updateBarDto);
+    return this.barsService.update(id, updateBarDto, req.user.userId);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('owner', 'admin')
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: string, @Request() req): Promise<void> {
     this.logger.log(`Recibiendo solicitud para eliminar bar con id: ${id}`);
-    return this.barsService.remove(id);
+    return this.barsService.remove(id, req.user.userId);
   }
 }

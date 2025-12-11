@@ -1,12 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/utils/extensions.dart';
+import '../../bars/controllers/bars_controller.dart';
+import '../../bars/models/bar_models.dart';
 
 /// Pantalla de gestión de bares para propietarios
-class OwnerBarsManagementScreen extends ConsumerWidget {
+class OwnerBarsManagementScreen extends ConsumerStatefulWidget {
   const OwnerBarsManagementScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OwnerBarsManagementScreen> createState() =>
+      _OwnerBarsManagementScreenState();
+}
+
+class _OwnerBarsManagementScreenState
+    extends ConsumerState<OwnerBarsManagementScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar bares al iniciar la pantalla
+    Future.microtask(
+      () => ref.read(barsControllerProvider.notifier).loadMyBars(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final barsState = ref.watch(barsControllerProvider);
+    final bars = barsState.bars;
+
+    // Listener para errores
+    ref.listen(barsControllerProvider, (previous, current) {
+      if (current.hasError) {
+        context.showErrorSnackBar(current.errorMessage!);
+        ref.read(barsControllerProvider.notifier).clearError();
+      }
+    });
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -51,11 +83,8 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
                     ),
                     ElevatedButton.icon(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Función disponible próximamente'),
-                          ),
-                        );
+                        // Navegar a crear bar
+                        context.push('/owner/bars/create');
                       },
                       icon: const Icon(Icons.add),
                       label: const Text('Nuevo'),
@@ -85,40 +114,7 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
                       topRight: Radius.circular(30),
                     ),
                   ),
-                  child: ListView(
-                    padding: const EdgeInsets.all(24.0),
-                    children: [
-                      _buildBarCard(
-                        name: 'El Rincón del Jazz',
-                        address: 'Calle Mayor 45, Madrid',
-                        status: 'Activo',
-                        statusColor: const Color(0xFF10B981),
-                        rating: 4.5,
-                        reviews: 128,
-                        imageUrl: null,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBarCard(
-                        name: 'La Taberna Moderna',
-                        address: 'Avenida de la Paz 12, Madrid',
-                        status: 'Activo',
-                        statusColor: const Color(0xFF10B981),
-                        rating: 4.2,
-                        reviews: 89,
-                        imageUrl: null,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBarCard(
-                        name: 'Bar Central',
-                        address: 'Plaza del Sol 3, Madrid',
-                        status: 'Inactivo',
-                        statusColor: const Color(0xFFEF4444),
-                        rating: 4.7,
-                        reviews: 256,
-                        imageUrl: null,
-                      ),
-                    ],
-                  ),
+                  child: _buildContent(barsState.status, bars),
                 ),
               ),
             ],
@@ -128,15 +124,128 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBarCard({
-    required String name,
-    required String address,
-    required String status,
-    required Color statusColor,
-    required double rating,
-    required int reviews,
-    String? imageUrl,
-  }) {
+  Widget _buildContent(BarsStatus status, List<Bar> bars) {
+    if (status == BarsStatus.loading && bars.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (status == BarsStatus.error && bars.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red.shade300,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Error al cargar bares',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Intenta de nuevo más tarde',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                ref.read(barsControllerProvider.notifier).loadMyBars();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (bars.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.storefront_outlined,
+              size: 100,
+              color: const Color(0xFF6366F1).withOpacity(0.3),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              '¡Aún no tienes bares!',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 48),
+              child: Text(
+                'Comienza agregando tu primer bar para gestionar tu negocio',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                // Navegar a crear bar
+                context.push('/owner/bars/create');
+              },
+              icon: const Icon(Icons.add_business),
+              label: const Text('Crear Mi Primer Bar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(barsControllerProvider.notifier).loadMyBars();
+      },
+      child: ListView.builder(
+        padding: const EdgeInsets.all(24.0),
+        itemCount: bars.length,
+        itemBuilder: (context, index) {
+          final bar = bars[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildBarCard(bar),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBarCard(Bar bar) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -162,13 +271,34 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
                 topRight: Radius.circular(16),
               ),
             ),
-            child: Center(
-              child: Icon(
-                Icons.storefront,
-                size: 64,
-                color: const Color(0xFF6366F1).withOpacity(0.5),
-              ),
-            ),
+            child: bar.photo != null && bar.photo!.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    child: Image.network(
+                      bar.photo!,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            Icons.storefront,
+                            size: 64,
+                            color: const Color(0xFF6366F1).withOpacity(0.5),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : Center(
+                    child: Icon(
+                      Icons.storefront,
+                      size: 64,
+                      color: const Color(0xFF6366F1).withOpacity(0.5),
+                    ),
+                  ),
           ),
 
           Padding(
@@ -181,7 +311,7 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        name,
+                        bar.nameBar,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -195,15 +325,19 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: bar.isActive
+                            ? const Color(0xFF10B981).withOpacity(0.1)
+                            : const Color(0xFFEF4444).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        status,
+                        bar.isActive ? 'Activo' : 'Inactivo',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: statusColor,
+                          color: bar.isActive
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFEF4444),
                         ),
                       ),
                     ),
@@ -220,7 +354,7 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        address,
+                        bar.location,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
@@ -229,39 +363,47 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      size: 18,
-                      color: Color(0xFFF59E0B),
+                if (bar.description != null && bar.description!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    bar.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      rating.toString(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
+                  ),
+                ],
+                if (bar.phone != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.phone,
+                        size: 16,
+                        color: Colors.grey,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '($reviews reseñas)',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
+                      const SizedBox(width: 4),
+                      Text(
+                        bar.phone!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                          // Navegar a editar bar
+                          context.push('/owner/bars/${bar.id}/edit');
+                        },
                         icon: const Icon(Icons.edit, size: 18),
                         label: const Text('Editar'),
                         style: OutlinedButton.styleFrom(
@@ -278,13 +420,15 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.analytics, size: 18),
-                        label: const Text('Ver Stats'),
+                        onPressed: () {
+                          _showDeleteConfirmation(bar);
+                        },
+                        icon: const Icon(Icons.delete, size: 18),
+                        label: const Text('Eliminar'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF10B981),
+                          foregroundColor: const Color(0xFFEF4444),
                           side: const BorderSide(
-                            color: Color(0xFF10B981),
+                            color: Color(0xFFEF4444),
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -299,6 +443,46 @@ class OwnerBarsManagementScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showDeleteConfirmation(Bar bar) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Eliminar Bar'),
+          content: Text(
+            '¿Estás seguro de que deseas eliminar "${bar.nameBar}"?\n\nEsta acción no se puede deshacer.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                final success = await ref
+                    .read(barsControllerProvider.notifier)
+                    .deleteBar(bar.id);
+                if (success && mounted) {
+                  context.showSuccessSnackBar(
+                    'Bar eliminado exitosamente',
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -3,43 +3,153 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'bar_models.g.dart';
 
-/// Modelo de bar
+/// Modelo de redes sociales del bar
+@JsonSerializable()
+class SocialLinks extends Equatable {
+  final String? facebook;
+  final String? instagram;
+
+  const SocialLinks({
+    this.facebook,
+    this.instagram,
+  });
+
+  factory SocialLinks.fromJson(Map<String, dynamic> json) =>
+      _$SocialLinksFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SocialLinksToJson(this);
+
+  @override
+  List<Object?> get props => [facebook, instagram];
+
+  SocialLinks copyWith({
+    String? facebook,
+    String? instagram,
+  }) {
+    return SocialLinks(
+      facebook: facebook ?? this.facebook,
+      instagram: instagram ?? this.instagram,
+    );
+  }
+}
+
+/// Modelo de horario de un día
+@JsonSerializable()
+class DayHours extends Equatable {
+  final String? open;
+  final String? close;
+
+  const DayHours({
+    this.open,
+    this.close,
+  });
+
+  factory DayHours.fromJson(Map<String, dynamic> json) =>
+      _$DayHoursFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DayHoursToJson(this);
+
+  @override
+  List<Object?> get props => [open, close];
+
+  DayHours copyWith({
+    String? open,
+    String? close,
+  }) {
+    return DayHours(
+      open: open ?? this.open,
+      close: close ?? this.close,
+    );
+  }
+}
+
+/// Modelo de horarios de la semana
+@JsonSerializable()
+class WeekHours extends Equatable {
+  final DayHours? monday;
+  final DayHours? tuesday;
+  final DayHours? wednesday;
+  final DayHours? thursday;
+  final DayHours? friday;
+  final DayHours? saturday;
+  final DayHours? sunday;
+
+  const WeekHours({
+    this.monday,
+    this.tuesday,
+    this.wednesday,
+    this.thursday,
+    this.friday,
+    this.saturday,
+    this.sunday,
+  });
+
+  factory WeekHours.fromJson(Map<String, dynamic> json) =>
+      _$WeekHoursFromJson(json);
+
+  Map<String, dynamic> toJson() => _$WeekHoursToJson(this);
+
+  @override
+  List<Object?> get props => [
+        monday,
+        tuesday,
+        wednesday,
+        thursday,
+        friday,
+        saturday,
+        sunday,
+      ];
+
+  WeekHours copyWith({
+    DayHours? monday,
+    DayHours? tuesday,
+    DayHours? wednesday,
+    DayHours? thursday,
+    DayHours? friday,
+    DayHours? saturday,
+    DayHours? sunday,
+  }) {
+    return WeekHours(
+      monday: monday ?? this.monday,
+      tuesday: tuesday ?? this.tuesday,
+      wednesday: wednesday ?? this.wednesday,
+      thursday: thursday ?? this.thursday,
+      friday: friday ?? this.friday,
+      saturday: saturday ?? this.saturday,
+      sunday: sunday ?? this.sunday,
+    );
+  }
+}
+
+/// Modelo principal de Bar - Adaptado al backend
 @JsonSerializable()
 class Bar extends Equatable {
   final String id;
-  final String name;
+  final String nameBar; // Nombre exacto del backend
+  final String location; // Location es string simple en backend
   final String? description;
-  final String? address;
+  final String ownerId;
   final String? phone;
-  final String? email;
-  final String? website;
-  final String? image;
-  final List<String> images;
-  final double? rating;
+  final String? photo;
+  final SocialLinks? socialLinks;
+  final WeekHours? hours;
   final bool isActive;
-  final BarLocation? location;
-  final List<String> amenities;
-  final BarOpeningHours? openingHours;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const Bar({
     required this.id,
-    required this.name,
+    required this.nameBar,
+    required this.location,
     this.description,
-    this.address,
+    required this.ownerId,
     this.phone,
-    this.email,
-    this.website,
-    this.image,
-    this.images = const [],
-    this.rating,
+    this.photo,
+    this.socialLinks,
+    this.hours,
     this.isActive = true,
-    this.location,
-    this.amenities = const [],
-    this.openingHours,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory Bar.fromJson(Map<String, dynamic> json) => _$BarFromJson(json);
@@ -49,167 +159,69 @@ class Bar extends Equatable {
   @override
   List<Object?> get props => [
         id,
-        name,
-        description,
-        address,
-        phone,
-        email,
-        website,
-        image,
-        images,
-        rating,
-        isActive,
+        nameBar,
         location,
-        amenities,
-        openingHours,
+        description,
+        ownerId,
+        phone,
+        photo,
+        socialLinks,
+        hours,
+        isActive,
         createdAt,
         updatedAt,
       ];
 
   Bar copyWith({
     String? id,
-    String? name,
+    String? nameBar,
+    String? location,
     String? description,
-    String? address,
+    String? ownerId,
     String? phone,
-    String? email,
-    String? website,
-    String? image,
-    List<String>? images,
-    double? rating,
+    String? photo,
+    SocialLinks? socialLinks,
+    WeekHours? hours,
     bool? isActive,
-    BarLocation? location,
-    List<String>? amenities,
-    BarOpeningHours? openingHours,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return Bar(
       id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      address: address ?? this.address,
-      phone: phone ?? this.phone,
-      email: email ?? this.email,
-      website: website ?? this.website,
-      image: image ?? this.image,
-      images: images ?? this.images,
-      rating: rating ?? this.rating,
-      isActive: isActive ?? this.isActive,
+      nameBar: nameBar ?? this.nameBar,
       location: location ?? this.location,
-      amenities: amenities ?? this.amenities,
-      openingHours: openingHours ?? this.openingHours,
+      description: description ?? this.description,
+      ownerId: ownerId ?? this.ownerId,
+      phone: phone ?? this.phone,
+      photo: photo ?? this.photo,
+      socialLinks: socialLinks ?? this.socialLinks,
+      hours: hours ?? this.hours,
+      isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
 
-/// Modelo de ubicación del bar
-@JsonSerializable()
-class BarLocation extends Equatable {
-  final double latitude;
-  final double longitude;
-  final String? address;
-  final String? city;
-  final String? state;
-  final String? country;
-  final String? postalCode;
-
-  const BarLocation({
-    required this.latitude,
-    required this.longitude,
-    this.address,
-    this.city,
-    this.state,
-    this.country,
-    this.postalCode,
-  });
-
-  factory BarLocation.fromJson(Map<String, dynamic> json) =>
-      _$BarLocationFromJson(json);
-
-  Map<String, dynamic> toJson() => _$BarLocationToJson(this);
-
-  @override
-  List<Object?> get props => [
-        latitude,
-        longitude,
-        address,
-        city,
-        state,
-        country,
-        postalCode,
-      ];
-}
-
-/// Modelo de horarios de apertura
-@JsonSerializable()
-class BarOpeningHours extends Equatable {
-  final Map<String, DaySchedule> schedule;
-
-  const BarOpeningHours({
-    required this.schedule,
-  });
-
-  factory BarOpeningHours.fromJson(Map<String, dynamic> json) =>
-      _$BarOpeningHoursFromJson(json);
-
-  Map<String, dynamic> toJson() => _$BarOpeningHoursToJson(this);
-
-  @override
-  List<Object?> get props => [schedule];
-}
-
-/// Horario de un día específico
-@JsonSerializable()
-class DaySchedule extends Equatable {
-  final bool isOpen;
-  final String? openTime;
-  final String? closeTime;
-  final String? breakStart;
-  final String? breakEnd;
-
-  const DaySchedule({
-    this.isOpen = true,
-    this.openTime,
-    this.closeTime,
-    this.breakStart,
-    this.breakEnd,
-  });
-
-  factory DaySchedule.fromJson(Map<String, dynamic> json) =>
-      _$DayScheduleFromJson(json);
-
-  Map<String, dynamic> toJson() => _$DayScheduleToJson(this);
-
-  @override
-  List<Object?> get props => [isOpen, openTime, closeTime, breakStart, breakEnd];
-}
-
-/// Request para crear/actualizar bar
+/// Request para crear un bar
 @JsonSerializable()
 class CreateBarRequest extends Equatable {
-  final String name;
+  final String nameBar;
+  final String location;
   final String? description;
-  final String? address;
   final String? phone;
-  final String? email;
-  final String? website;
-  final BarLocation? location;
-  final List<String> amenities;
-  final BarOpeningHours? openingHours;
+  final String? photo;
+  final SocialLinks? socialLinks;
+  final WeekHours? hours;
 
   const CreateBarRequest({
-    required this.name,
+    required this.nameBar,
+    required this.location,
     this.description,
-    this.address,
     this.phone,
-    this.email,
-    this.website,
-    this.location,
-    this.amenities = const [],
-    this.openingHours,
+    this.photo,
+    this.socialLinks,
+    this.hours,
   });
 
   factory CreateBarRequest.fromJson(Map<String, dynamic> json) =>
@@ -219,144 +231,53 @@ class CreateBarRequest extends Equatable {
 
   @override
   List<Object?> get props => [
-        name,
-        description,
-        address,
-        phone,
-        email,
-        website,
+        nameBar,
         location,
-        amenities,
-        openingHours,
+        description,
+        phone,
+        photo,
+        socialLinks,
+        hours,
       ];
 }
 
-/// Filtros para buscar bares
+/// Request para actualizar un bar
 @JsonSerializable()
-class BarFilters extends Equatable {
-  final String? search;
-  final String? city;
-  final double? latitude;
-  final double? longitude;
-  final double? radiusKm;
-  final double? minRating;
-  final List<String>? amenities;
+class UpdateBarRequest extends Equatable {
+  final String? nameBar;
+  final String? location;
+  final String? description;
+  final String? phone;
+  final String? photo;
+  final SocialLinks? socialLinks;
+  final WeekHours? hours;
   final bool? isActive;
-  final int page;
-  final int limit;
-  final String? sortBy;
-  final String? sortOrder;
 
-  const BarFilters({
-    this.search,
-    this.city,
-    this.latitude,
-    this.longitude,
-    this.radiusKm,
-    this.minRating,
-    this.amenities,
+  const UpdateBarRequest({
+    this.nameBar,
+    this.location,
+    this.description,
+    this.phone,
+    this.photo,
+    this.socialLinks,
+    this.hours,
     this.isActive,
-    this.page = 1,
-    this.limit = 20,
-    this.sortBy = 'name',
-    this.sortOrder = 'asc',
   });
 
-  factory BarFilters.fromJson(Map<String, dynamic> json) =>
-      _$BarFiltersFromJson(json);
+  factory UpdateBarRequest.fromJson(Map<String, dynamic> json) =>
+      _$UpdateBarRequestFromJson(json);
 
-  Map<String, dynamic> toJson() => _$BarFiltersToJson(this);
-
-  Map<String, dynamic> toQueryParameters() {
-    final params = <String, dynamic>{};
-    
-    if (search != null && search!.isNotEmpty) params['search'] = search;
-    if (city != null && city!.isNotEmpty) params['city'] = city;
-    if (latitude != null) params['latitude'] = latitude.toString();
-    if (longitude != null) params['longitude'] = longitude.toString();
-    if (radiusKm != null) params['radiusKm'] = radiusKm.toString();
-    if (minRating != null) params['minRating'] = minRating.toString();
-    if (amenities != null && amenities!.isNotEmpty) params['amenities'] = amenities!.join(',');
-    if (isActive != null) params['isActive'] = isActive.toString();
-    params['page'] = page.toString();
-    params['limit'] = limit.toString();
-    if (sortBy != null) params['sortBy'] = sortBy;
-    if (sortOrder != null) params['sortOrder'] = sortOrder;
-    
-    return params;
-  }
+  Map<String, dynamic> toJson() => _$UpdateBarRequestToJson(this);
 
   @override
   List<Object?> get props => [
-        search,
-        city,
-        latitude,
-        longitude,
-        radiusKm,
-        minRating,
-        amenities,
+        nameBar,
+        location,
+        description,
+        phone,
+        photo,
+        socialLinks,
+        hours,
         isActive,
-        page,
-        limit,
-        sortBy,
-        sortOrder,
       ];
-
-  BarFilters copyWith({
-    String? search,
-    String? city,
-    double? latitude,
-    double? longitude,
-    double? radiusKm,
-    double? minRating,
-    List<String>? amenities,
-    bool? isActive,
-    int? page,
-    int? limit,
-    String? sortBy,
-    String? sortOrder,
-  }) {
-    return BarFilters(
-      search: search ?? this.search,
-      city: city ?? this.city,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      radiusKm: radiusKm ?? this.radiusKm,
-      minRating: minRating ?? this.minRating,
-      amenities: amenities ?? this.amenities,
-      isActive: isActive ?? this.isActive,
-      page: page ?? this.page,
-      limit: limit ?? this.limit,
-      sortBy: sortBy ?? this.sortBy,
-      sortOrder: sortOrder ?? this.sortOrder,
-    );
-  }
-}
-
-/// Response para lista de bares
-@JsonSerializable()
-class BarsListResponse extends Equatable {
-  final List<Bar> bars;
-  final int total;
-  final int page;
-  final int limit;
-  final bool hasNext;
-  final bool hasPrev;
-
-  const BarsListResponse({
-    required this.bars,
-    required this.total,
-    required this.page,
-    required this.limit,
-    required this.hasNext,
-    required this.hasPrev,
-  });
-
-  factory BarsListResponse.fromJson(Map<String, dynamic> json) =>
-      _$BarsListResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$BarsListResponseToJson(this);
-
-  @override
-  List<Object?> get props => [bars, total, page, limit, hasNext, hasPrev];
 }

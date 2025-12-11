@@ -14,6 +14,7 @@ import '../modules/owner/views/owner_dashboard_screen.dart';
 import '../modules/owner/views/owner_bars_management_screen.dart';
 import '../modules/owner/views/owner_menus_management_screen.dart';
 import '../modules/owner/views/owner_statistics_screen.dart';
+import '../modules/owner/views/bar_form_screen.dart';
 
 // Client screens
 import '../modules/client/views/client_home_screen.dart';
@@ -31,6 +32,8 @@ class AppRouter {
   // Rutas de owner
   static const String ownerDashboard = '/owner/dashboard';
   static const String ownerBars = '/owner/bars';
+  static const String ownerBarCreate = '/owner/bars/create';
+  static const String ownerBarEdit = '/owner/bars/:id/edit';
   static const String ownerMenus = '/owner/menus';
   static const String ownerStatistics = '/owner/statistics';
   
@@ -143,6 +146,21 @@ class AppRouter {
           builder: (context, state) => const OwnerNavigationWrapper(
             initialIndex: 3,
           ),
+        ),
+        
+        GoRoute(
+          path: ownerBarCreate,
+          name: 'ownerBarCreate',
+          builder: (context, state) => const BarFormScreen(),
+        ),
+        
+        GoRoute(
+          path: ownerBarEdit,
+          name: 'ownerBarEdit',
+          builder: (context, state) {
+            final barId = state.pathParameters['id'];
+            return BarFormScreen(barId: barId);
+          },
         ),
         
         // Rutas de Client

@@ -6,190 +6,149 @@ part of 'bar_models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+SocialLinks _$SocialLinksFromJson(Map<String, dynamic> json) => SocialLinks(
+      facebook: json['facebook'] as String?,
+      instagram: json['instagram'] as String?,
+    );
+
+Map<String, dynamic> _$SocialLinksToJson(SocialLinks instance) =>
+    <String, dynamic>{
+      'facebook': instance.facebook,
+      'instagram': instance.instagram,
+    };
+
+DayHours _$DayHoursFromJson(Map<String, dynamic> json) => DayHours(
+      open: json['open'] as String?,
+      close: json['close'] as String?,
+    );
+
+Map<String, dynamic> _$DayHoursToJson(DayHours instance) => <String, dynamic>{
+      'open': instance.open,
+      'close': instance.close,
+    };
+
+WeekHours _$WeekHoursFromJson(Map<String, dynamic> json) => WeekHours(
+      monday: json['monday'] == null
+          ? null
+          : DayHours.fromJson(json['monday'] as Map<String, dynamic>),
+      tuesday: json['tuesday'] == null
+          ? null
+          : DayHours.fromJson(json['tuesday'] as Map<String, dynamic>),
+      wednesday: json['wednesday'] == null
+          ? null
+          : DayHours.fromJson(json['wednesday'] as Map<String, dynamic>),
+      thursday: json['thursday'] == null
+          ? null
+          : DayHours.fromJson(json['thursday'] as Map<String, dynamic>),
+      friday: json['friday'] == null
+          ? null
+          : DayHours.fromJson(json['friday'] as Map<String, dynamic>),
+      saturday: json['saturday'] == null
+          ? null
+          : DayHours.fromJson(json['saturday'] as Map<String, dynamic>),
+      sunday: json['sunday'] == null
+          ? null
+          : DayHours.fromJson(json['sunday'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$WeekHoursToJson(WeekHours instance) => <String, dynamic>{
+      'monday': instance.monday,
+      'tuesday': instance.tuesday,
+      'wednesday': instance.wednesday,
+      'thursday': instance.thursday,
+      'friday': instance.friday,
+      'saturday': instance.saturday,
+      'sunday': instance.sunday,
+    };
+
 Bar _$BarFromJson(Map<String, dynamic> json) => Bar(
       id: json['id'] as String,
-      name: json['name'] as String,
+      nameBar: json['nameBar'] as String,
+      location: json['location'] as String,
       description: json['description'] as String?,
-      address: json['address'] as String?,
+      ownerId: json['ownerId'] as String,
       phone: json['phone'] as String?,
-      email: json['email'] as String?,
-      website: json['website'] as String?,
-      image: json['image'] as String?,
-      images: (json['images'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      rating: (json['rating'] as num?)?.toDouble(),
+      photo: json['photo'] as String?,
+      socialLinks: json['socialLinks'] == null
+          ? null
+          : SocialLinks.fromJson(json['socialLinks'] as Map<String, dynamic>),
+      hours: json['hours'] == null
+          ? null
+          : WeekHours.fromJson(json['hours'] as Map<String, dynamic>),
       isActive: json['isActive'] as bool? ?? true,
-      location: json['location'] == null
+      createdAt: json['createdAt'] == null
           ? null
-          : BarLocation.fromJson(json['location'] as Map<String, dynamic>),
-      amenities: (json['amenities'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      openingHours: json['openingHours'] == null
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] == null
           ? null
-          : BarOpeningHours.fromJson(
-              json['openingHours'] as Map<String, dynamic>),
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+          : DateTime.parse(json['updatedAt'] as String),
     );
 
 Map<String, dynamic> _$BarToJson(Bar instance) => <String, dynamic>{
       'id': instance.id,
-      'name': instance.name,
-      'description': instance.description,
-      'address': instance.address,
-      'phone': instance.phone,
-      'email': instance.email,
-      'website': instance.website,
-      'image': instance.image,
-      'images': instance.images,
-      'rating': instance.rating,
-      'isActive': instance.isActive,
+      'nameBar': instance.nameBar,
       'location': instance.location,
-      'amenities': instance.amenities,
-      'openingHours': instance.openingHours,
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
-    };
-
-BarLocation _$BarLocationFromJson(Map<String, dynamic> json) => BarLocation(
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      address: json['address'] as String?,
-      city: json['city'] as String?,
-      state: json['state'] as String?,
-      country: json['country'] as String?,
-      postalCode: json['postalCode'] as String?,
-    );
-
-Map<String, dynamic> _$BarLocationToJson(BarLocation instance) =>
-    <String, dynamic>{
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
-      'address': instance.address,
-      'city': instance.city,
-      'state': instance.state,
-      'country': instance.country,
-      'postalCode': instance.postalCode,
-    };
-
-BarOpeningHours _$BarOpeningHoursFromJson(Map<String, dynamic> json) =>
-    BarOpeningHours(
-      schedule: (json['schedule'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(k, DaySchedule.fromJson(e as Map<String, dynamic>)),
-      ),
-    );
-
-Map<String, dynamic> _$BarOpeningHoursToJson(BarOpeningHours instance) =>
-    <String, dynamic>{
-      'schedule': instance.schedule,
-    };
-
-DaySchedule _$DayScheduleFromJson(Map<String, dynamic> json) => DaySchedule(
-      isOpen: json['isOpen'] as bool? ?? true,
-      openTime: json['openTime'] as String?,
-      closeTime: json['closeTime'] as String?,
-      breakStart: json['breakStart'] as String?,
-      breakEnd: json['breakEnd'] as String?,
-    );
-
-Map<String, dynamic> _$DayScheduleToJson(DaySchedule instance) =>
-    <String, dynamic>{
-      'isOpen': instance.isOpen,
-      'openTime': instance.openTime,
-      'closeTime': instance.closeTime,
-      'breakStart': instance.breakStart,
-      'breakEnd': instance.breakEnd,
+      'description': instance.description,
+      'ownerId': instance.ownerId,
+      'phone': instance.phone,
+      'photo': instance.photo,
+      'socialLinks': instance.socialLinks,
+      'hours': instance.hours,
+      'isActive': instance.isActive,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
     };
 
 CreateBarRequest _$CreateBarRequestFromJson(Map<String, dynamic> json) =>
     CreateBarRequest(
-      name: json['name'] as String,
+      nameBar: json['nameBar'] as String,
+      location: json['location'] as String,
       description: json['description'] as String?,
-      address: json['address'] as String?,
       phone: json['phone'] as String?,
-      email: json['email'] as String?,
-      website: json['website'] as String?,
-      location: json['location'] == null
+      photo: json['photo'] as String?,
+      socialLinks: json['socialLinks'] == null
           ? null
-          : BarLocation.fromJson(json['location'] as Map<String, dynamic>),
-      amenities: (json['amenities'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      openingHours: json['openingHours'] == null
+          : SocialLinks.fromJson(json['socialLinks'] as Map<String, dynamic>),
+      hours: json['hours'] == null
           ? null
-          : BarOpeningHours.fromJson(
-              json['openingHours'] as Map<String, dynamic>),
+          : WeekHours.fromJson(json['hours'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$CreateBarRequestToJson(CreateBarRequest instance) =>
     <String, dynamic>{
-      'name': instance.name,
-      'description': instance.description,
-      'address': instance.address,
-      'phone': instance.phone,
-      'email': instance.email,
-      'website': instance.website,
+      'nameBar': instance.nameBar,
       'location': instance.location,
-      'amenities': instance.amenities,
-      'openingHours': instance.openingHours,
+      'description': instance.description,
+      'phone': instance.phone,
+      'photo': instance.photo,
+      'socialLinks': instance.socialLinks,
+      'hours': instance.hours,
     };
 
-BarFilters _$BarFiltersFromJson(Map<String, dynamic> json) => BarFilters(
-      search: json['search'] as String?,
-      city: json['city'] as String?,
-      latitude: (json['latitude'] as num?)?.toDouble(),
-      longitude: (json['longitude'] as num?)?.toDouble(),
-      radiusKm: (json['radiusKm'] as num?)?.toDouble(),
-      minRating: (json['minRating'] as num?)?.toDouble(),
-      amenities: (json['amenities'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+UpdateBarRequest _$UpdateBarRequestFromJson(Map<String, dynamic> json) =>
+    UpdateBarRequest(
+      nameBar: json['nameBar'] as String?,
+      location: json['location'] as String?,
+      description: json['description'] as String?,
+      phone: json['phone'] as String?,
+      photo: json['photo'] as String?,
+      socialLinks: json['socialLinks'] == null
+          ? null
+          : SocialLinks.fromJson(json['socialLinks'] as Map<String, dynamic>),
+      hours: json['hours'] == null
+          ? null
+          : WeekHours.fromJson(json['hours'] as Map<String, dynamic>),
       isActive: json['isActive'] as bool?,
-      page: (json['page'] as num?)?.toInt() ?? 1,
-      limit: (json['limit'] as num?)?.toInt() ?? 20,
-      sortBy: json['sortBy'] as String? ?? 'name',
-      sortOrder: json['sortOrder'] as String? ?? 'asc',
     );
 
-Map<String, dynamic> _$BarFiltersToJson(BarFilters instance) =>
+Map<String, dynamic> _$UpdateBarRequestToJson(UpdateBarRequest instance) =>
     <String, dynamic>{
-      'search': instance.search,
-      'city': instance.city,
-      'latitude': instance.latitude,
-      'longitude': instance.longitude,
-      'radiusKm': instance.radiusKm,
-      'minRating': instance.minRating,
-      'amenities': instance.amenities,
+      'nameBar': instance.nameBar,
+      'location': instance.location,
+      'description': instance.description,
+      'phone': instance.phone,
+      'photo': instance.photo,
+      'socialLinks': instance.socialLinks,
+      'hours': instance.hours,
       'isActive': instance.isActive,
-      'page': instance.page,
-      'limit': instance.limit,
-      'sortBy': instance.sortBy,
-      'sortOrder': instance.sortOrder,
-    };
-
-BarsListResponse _$BarsListResponseFromJson(Map<String, dynamic> json) =>
-    BarsListResponse(
-      bars: (json['bars'] as List<dynamic>)
-          .map((e) => Bar.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      total: (json['total'] as num).toInt(),
-      page: (json['page'] as num).toInt(),
-      limit: (json['limit'] as num).toInt(),
-      hasNext: json['hasNext'] as bool,
-      hasPrev: json['hasPrev'] as bool,
-    );
-
-Map<String, dynamic> _$BarsListResponseToJson(BarsListResponse instance) =>
-    <String, dynamic>{
-      'bars': instance.bars,
-      'total': instance.total,
-      'page': instance.page,
-      'limit': instance.limit,
-      'hasNext': instance.hasNext,
-      'hasPrev': instance.hasPrev,
     };

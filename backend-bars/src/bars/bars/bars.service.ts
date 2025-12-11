@@ -62,6 +62,21 @@ export class BarsService {
     return this.barModel.find().exec();
   }
 
+  async findByOwner(ownerId: string): Promise<Bar[]> {
+    this.logger.log(`Buscando bares del propietario: ${ownerId}`);
+    const ownerObjectId = new Types.ObjectId(ownerId);
+    return this.barModel.find({ ownerId: ownerObjectId }).exec();
+  }
+
+  async verifyOwnership(barId: string, ownerId: string): Promise<boolean> {
+    this.logger.log(`Verificando ownership del bar ${barId} para usuario ${ownerId}`);
+    const bar = await this.barModel.findById(barId).exec();
+    if (!bar) {
+      return false;
+    }
+    return bar.ownerId.toString() === ownerId;
+  }
+
   async findOne(id: string): Promise<Bar> {
     this.logger.log(`Buscando bar con id: ${id}`);
     const bar = await this.barModel.findById(id).exec();
@@ -72,7 +87,7 @@ export class BarsService {
     return bar;
   }
 
-  async update(id: string, updateBarDto: Partial<CreateBarDto>): Promise<Bar> {
+  async update(id: string, updateBarDto: Partial<CreateBarDto>, userId?: string): Promise<Bar> {
     this.logger.log(`Actualizando bar con id: ${id}`);
 
     const barIdObj = new Types.ObjectId(id);
@@ -80,6 +95,12 @@ export class BarsService {
     if (!barActual) {
       this.logger.warn(`Bar con id ${id} no encontrado`);
       throw new NotFoundException(`Bar with id ${id} not found`);
+    }
+
+    // Verificar ownership si se proporciona userId
+    if (userId && barActual.ownerId.toString() !== userId) {
+      this.logger.warn(`Usuario ${userId} intentó actualizar bar ${id} que no le pertenece`);
+      throw new ForbiddenException('No tienes permiso para actualizar este bar');
     }
 
     // Validar nombre solo si cambia
@@ -124,8 +145,22 @@ export class BarsService {
     return barActual.save();
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, userId?: string): Promise<void> {
     this.logger.log(`Eliminando bar con id: ${id}`);
+    
+    // Verificar ownership si se proporciona userId
+    if (userId) {
+      const bar = await this.barModel.findById(id).exec();
+      if (!bar) {
+        this.logger.warn(`No se pudo eliminar. Bar con id ${id} no encontrado`);
+        throw new NotFoundException(`Bar with id ${id} not found`);
+      }
+      if (bar.ownerId.toString() !== userId) {
+        this.logger.warn(`Usuario ${userId} intentó eliminar bar ${id} que no le pertenece`);
+        throw new ForbiddenException('No tienes permiso para eliminar este bar');
+      }
+    }
+    
     const result = await this.barModel.findByIdAndDelete(id).exec();
     if (!result) {
       this.logger.warn(`No se pudo eliminar. Bar con id ${id} no encontrado`);
