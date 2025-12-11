@@ -7,6 +7,7 @@ import { BarsModule } from './bars/bars/bars.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MenusModule } from './menus/menus.module'; // <-- Importa el módulo menús
+import { PromotionsModule } from './promotions/promotions.module'; // <-- Importa el módulo promociones
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MenusModule } from './menus/menus.module'; // <-- Importa el módulo me
     UsersModule,
     AuthModule,
     MenusModule, // <-- Agrega aquí
+    PromotionsModule, // <-- Agrega promociones
   ],
   controllers: [AppController],
   providers: [AppService],
