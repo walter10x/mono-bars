@@ -23,7 +23,7 @@ import { UsersModule } from '../users/users.module';
         }
         return {
           secret,
-          signOptions: { expiresIn: '1h' },
+          signOptions: { expiresIn: '7d' }, // 7 días de duración
         };
       },
       inject: [ConfigService],
