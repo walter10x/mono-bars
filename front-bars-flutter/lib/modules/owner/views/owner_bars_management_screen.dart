@@ -397,42 +397,55 @@ class _OwnerBarsManagementScreenState
                 ],
                 const SizedBox(height: 16),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          // Navegar a editar bar
-                          context.push('/owner/bars/${bar.id}/edit');
-                        },
-                        icon: const Icon(Icons.edit, size: 18),
-                        label: const Text('Editar'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF6366F1),
-                          side: const BorderSide(
-                            color: Color(0xFF6366F1),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                    // Botón Ver
+                    IconButton(
+                      onPressed: () {
+                        context.push('/owner/bars/${bar.id}/preview');
+                      },
+                      icon: const Icon(Icons.visibility),
+                      color: const Color(0xFF10B981),
+                      tooltip: 'Ver detalles',
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981).withOpacity(0.1),
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          _showDeleteConfirmation(bar);
-                        },
-                        icon: const Icon(Icons.delete, size: 18),
-                        label: const Text('Eliminar'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFEF4444),
-                          side: const BorderSide(
-                            color: Color(0xFFEF4444),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                    const SizedBox(width: 8),
+                    // Botón Editar
+                    IconButton(
+                      onPressed: () {
+                        context.push('/owner/bars/${bar.id}/edit');
+                      },
+                      icon: const Icon(Icons.edit),
+                      color: const Color(0xFF6366F1),
+                      tooltip: 'Editar bar',
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Botón Eliminar
+                    IconButton(
+                      onPressed: () {
+                        _showDeleteConfirmation(bar);
+                      },
+                      icon: const Icon(Icons.delete_outline),
+                      color: const Color(0xFFEF4444),
+                      tooltip: 'Eliminar bar',
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF4444).withOpacity(0.1),
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
