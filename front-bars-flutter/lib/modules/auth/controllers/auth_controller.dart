@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/storage/secure_storage_service.dart';
+import '../../../core/network/dio_client.dart';
 import '../models/auth_models.dart';
 import '../services/auth_service.dart';
 
@@ -15,11 +16,24 @@ part 'auth_controller.g.dart';
 class AuthController extends _$AuthController {
   late final AuthService _authService;
   late final SecureStorageService _storageService;
+  StreamSubscription? _authErrorSubscription;
 
   @override
   AuthState build() {
     _authService = ref.watch(authServiceProvider);
     _storageService = ref.watch(secureStorageServiceProvider);
+    
+    // Escuchar errores de autenticación del DioClient
+    final dioClient = ref.watch(dioClientProvider);
+    _authErrorSubscription = dioClient.authErrorStream.listen((errorMessage) {
+      // Cuando hay error de autenticación, hacer logout automático
+      state = AuthState.unauthenticated(errorMessage: errorMessage);
+    });
+    
+    // Cleanup cuando se destruye
+    ref.onDispose(() {
+      _authErrorSubscription?.cancel();
+    });
     
     // Verificar automáticamente el estado de autenticación al inicializar
     _checkAuthStatus();

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,10 @@ class DioClient {
   late final Dio _dio;
   final SecureStorageService _storageService;
   final Logger _logger = Logger();
+  
+  // Stream para notificar errores de autenticación
+  final _authErrorController = StreamController<String>.broadcast();
+  Stream<String> get authErrorStream => _authErrorController.stream;
 
   DioClient(this._storageService) {
     _dio = Dio(BaseOptions(
@@ -79,10 +84,17 @@ class DioClient {
               final clonedRequest = await _dio.fetch(error.requestOptions);
               return handler.resolve(clonedRequest);
             } catch (refreshError) {
-              // Si falla el refresh, limpiar tokens y redirigir al login
+              // Si falla el refresh, limpiar tokens y notificar
               await _storageService.clearTokens();
               _logger.e('Failed to refresh token: $refreshError');
+              
+              // Notificar que la sesión expiró
+              _authErrorController.add('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
             }
+          } else {
+            // No hay refresh token, sesión inválida
+            await _storageService.clearTokens();
+            _authErrorController.add('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
           }
         }
         
@@ -227,6 +239,7 @@ class DioClient {
 
   void dispose() {
     _dio.close();
+    _authErrorController.close();
   }
 }
 

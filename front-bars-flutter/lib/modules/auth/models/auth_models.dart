@@ -361,8 +361,11 @@ class AuthState extends Equatable {
   }
 
   /// Estado no autenticado
-  factory AuthState.unauthenticated() {
-    return const AuthState(status: AuthStatus.unauthenticated);
+  factory AuthState.unauthenticated({String? errorMessage}) {
+    return AuthState(
+      status: AuthStatus.unauthenticated,
+      errorMessage: errorMessage,
+    );
   }
 
   /// Estado de error
