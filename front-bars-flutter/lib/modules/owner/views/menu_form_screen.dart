@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,10 +7,12 @@ import 'package:go_router/go_router.dart';
 import 'package:front_bars_flutter/core/utils/extensions.dart';
 import 'package:front_bars_flutter/shared/widgets/custom_button.dart';
 import 'package:front_bars_flutter/shared/widgets/custom_text_field.dart';
+import 'package:front_bars_flutter/shared/widgets/image_picker_widget.dart';
 import 'package:front_bars_flutter/shared/widgets/loading_overlay.dart';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
 import 'package:front_bars_flutter/modules/menus/controllers/menus_controller.dart';
 import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
+import 'package:front_bars_flutter/core/services/image_upload_service.dart';
 
 /// Pantalla para crear o editar un menú
 class MenuFormScreen extends ConsumerStatefulWidget {
@@ -39,6 +42,8 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
 
   String? _selectedBarId;
   bool _isEditMode = false;
+  File? _selectedImage; // Imagen seleccionada para subir
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -103,6 +108,8 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
       return;
     }
 
+    setState(() => _isUploading = true);
+
     // Convertir items del formulario a MenuItem
     final items = _items
         .map((itemForm) => MenuItem(
@@ -136,6 +143,11 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
           .read(menusControllerProvider.notifier)
           .updateMenu(widget.menuId!, request);
 
+      // Si se actualizó y hay imagen nueva, subirla
+      if (success && _selectedImage != null && widget.menuId != null) {
+        await _uploadImage(widget.menuId!);
+      }
+
       if (success && mounted) {
         context.showSuccessSnackBar('Menú actualizado exitosamente');
         context.pop();
@@ -154,13 +166,45 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
         items: items.isEmpty ? null : items,
       );
 
+
       success = await ref
           .read(menusControllerProvider.notifier)
           .createMenu(request);
 
+      // Si se creó y hay imagen seleccionada, obtener el ID del menú y subir imagen
+      if (success && _selectedImage != null) {
+        final createdMenu = ref.read(menusControllerProvider).menus.lastOrNull;
+        if (createdMenu != null) {
+          await _uploadImage(createdMenu.id);
+        }
+      }
+
       if (success && mounted) {
         context.showSuccessSnackBar('Menú creado exitosamente');
         context.pop();
+      }
+    }
+
+    if (!success && mounted) {
+      context.showErrorSnackBar('Error al guardar el menú');
+    }
+
+    setState(() => _isUploading = false);
+  }
+
+  Future<void> _uploadImage(String menuId) async {
+    if (_selectedImage == null) return;
+
+    try {
+      final uploadService = ref.read(imageUploadServiceProvider);
+      await uploadService.uploadMenuImage(menuId, _selectedImage!);
+      
+      if (mounted) {
+        context.showSuccessSnackBar('Foto subida exitosamente');
+      }
+    } catch (e) {
+      if (mounted) {
+        context.showErrorSnackBar('Error al subir foto: $e');
       }
     }
   }
@@ -193,7 +237,7 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
     });
 
     return LoadingOverlay(
-      isLoading: isLoading,
+      isLoading: isLoading || _isUploading,
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -288,13 +332,16 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
                 _buildSectionTitle('Foto del Menú', Icons.image),
                 const SizedBox(height: 16),
                 
-                CustomTextField(
-                  controller: _photoController,
-                  label: 'URL de la Foto',
-                  hint: 'https://ejemplo.com/foto.jpg',
-                  prefixIcon: Icons.link,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.done,
+                ImagePickerWidget(
+                  initialImageUrl: _photoController.text.isNotEmpty 
+                      ? _photoController.text 
+                      : null,
+                  label: 'Foto del Menú',
+                  onImageSelected: (file) {
+                    setState(() {
+                      _selectedImage = file;
+                    });
+                  },
                 ),
                 
                 const SizedBox(height: 32),
