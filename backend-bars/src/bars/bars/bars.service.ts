@@ -168,4 +168,24 @@ export class BarsService {
     }
     this.logger.log(`Bar con id ${id} eliminado correctamente`);
   }
+
+  async updatePhotoUrl(id: string, photoUrl: string): Promise<Bar> {
+    this.logger.log(`Actualizando foto del bar ${id}`);
+    const bar = await this.barModel.findById(id).exec();
+    if (!bar) {
+      throw new NotFoundException(`Bar with id ${id} not found`);
+    }
+    bar.photo = photoUrl;
+    return bar.save();
+  }
+
+  async removePhoto(id: string): Promise<Bar> {
+    this.logger.log(`Eliminando foto del bar ${id}`);
+    const bar = await this.barModel.findById(id).exec();
+    if (!bar) {
+      throw new NotFoundException(`Bar with id ${id} not found`);
+    }
+    bar.photo = '';
+    return bar.save();
+  }
 }
