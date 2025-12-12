@@ -3,14 +3,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/controllers/auth_controller.dart';
+import '../../bars/controllers/bars_controller.dart';
+import '../../../core/utils/image_url_helper.dart';
 
 /// Pantalla principal para clientes
-class ClientHomeScreen extends ConsumerWidget {
+class ClientHomeScreen extends ConsumerStatefulWidget {
   const ClientHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ClientHomeScreen> createState() => _ClientHomeScreenState();
+}
+
+class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar bares cuando se inicializa la pantalla
+    Future.microtask(() {
+      ref.read(barsControllerProvider.notifier).loadAllBars();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
+    final barsState = ref.watch(barsControllerProvider);
 
     return Scaffold(
       body: Container(
@@ -210,35 +227,10 @@ class ClientHomeScreen extends ConsumerWidget {
 
                       const SizedBox(height: 16),
 
+                      // Contenido de bares - con estados de loading/error/datos
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Column(
-                          children: [
-                            _buildBarCard(
-                              name: 'El Rincón del Jazz',
-                              address: 'Calle Mayor 45 • 0.5 km',
-                              rating: 4.5,
-                              reviews: 128,
-                              tags: ['Jazz', 'Cócteles', 'Ambiente'],
-                            ),
-                            const SizedBox(height: 16),
-                            _buildBarCard(
-                              name: 'La Taberna Moderna',
-                              address: 'Av. de la Paz 12 • 0.8 km',
-                              rating: 4.2,
-                              reviews: 89,
-                              tags: ['Tapas', 'Cerveza', 'Terraza'],
-                            ),
-                            const SizedBox(height: 16),
-                            _buildBarCard(
-                              name: 'Bar Central',
-                              address: 'Plaza del Sol 3 • 1.2 km',
-                              rating: 4.7,
-                              reviews: 256,
-                              tags: ['Clásico', 'Vinos', 'Comida'],
-                            ),
-                          ],
-                        ),
+                        child: _buildBarsContent(barsState),
                       ),
 
                       const SizedBox(height: 24),
@@ -250,6 +242,149 @@ class ClientHomeScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// Construir contenido de bares según el estado
+  Widget _buildBarsContent(BarsState barsState) {
+    // Estado de carga
+    if (barsState.status == BarsStatus.loading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(
+            color: Color(0xFF6366F1),
+          ),
+        ),
+      );
+    }
+
+    // Estado de error
+    if (barsState.hasError) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEF4444).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFEF4444).withOpacity(0.3),
+          ),
+        ),
+        child: Column(
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Color(0xFFEF4444),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Error al cargar bares',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFEF4444),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              barsState.errorMessage ?? 'Error desconocido',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                ref.read(barsControllerProvider.notifier).loadAllBars();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Estado vacío
+    if (barsState.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          children: [
+            Icon(
+              Icons.store_outlined,
+              size: 64,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No hay bares disponibles',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Por favor, intenta más tarde',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Mostrar bares (máximo 3)
+    final barsToShow = barsState.bars.take(3).toList();
+    
+    return Column(
+      children: [
+        ...barsToShow.map((bar) {
+          // Calcular rating simulado (por ahora)
+          final rating = 4.0 + (bar.id.hashCode % 10) / 10;
+          final reviews = 50 + (bar.id.hashCode % 200);
+          
+          // Debug: imprimir foto del bar
+          print('Bar: ${bar.nameBar}, Photo: ${bar.photo}');
+          
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: _buildBarCard(
+              barId: bar.id,
+              name: bar.nameBar,
+              address: bar.location,
+              rating: rating,
+              reviews: reviews,
+              tags: ['Bar', 'Bebidas', 'Ambiente'], // Tags por defecto por ahora
+              photo: bar.photo,
+            ),
+          );
+        }).toList(),
+        
+        // Botón "Ver más" si hay más de 3 bares
+        if (barsState.bars.length > 3)
+          TextButton.icon(
+            onPressed: () {
+              // Navegar a la lista completa de bares
+              context.push('/client/bars');
+            },
+            icon: const Icon(Icons.arrow_forward),
+            label: Text('Ver todos (${barsState.bars.length})'),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF6366F1),
+            ),
+          ),
+      ],
     );
   }
 
@@ -335,140 +470,268 @@ class ClientHomeScreen extends ConsumerWidget {
   }
 
   Widget _buildBarCard({
+    required String barId,
     required String name,
     required String address,
     required double rating,
     required int reviews,
     required List<String> tags,
+    String? photo,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Imagen del bar
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        // Navegar al detalle del bar
+        context.push('/client/bars/$barId');
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(
-              Icons.local_bar,
-              size: 40,
-              color: const Color(0xFF6366F1).withOpacity(0.5),
-            ),
-          ),
-
-          const SizedBox(width: 16),
-
-          // Información del bar
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header con foto del bar
+            Stack(
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 14,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      address,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      size: 16,
-                      color: Color(0xFFF59E0B),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      rating.toString(),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '($reviews)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  children: tags
-                      .take(2)
-                      .map(
-                        (tag) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
+                // Imagen de fondo
+                Container(
+                  height: 160,
+                  width: double.infinity,
+                  child: photo != null && photo.isNotEmpty
+                      ? Image.network(
+                          ImageUrlHelper.getFullImageUrl(photo),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    const Color(0xFF6366F1),
+                                    const Color(0xFF8B5CF6),
+                                  ],
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.storefront,
+                                size: 64,
+                                color: Colors.white.withOpacity(0.5),
+                              ),
+                            );
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: Colors.grey.shade100,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes !=
+                                          null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                  color: const Color(0xFF6366F1),
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFF6366F1).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            tag,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF6366F1),
-                              fontWeight: FontWeight.w500,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color(0xFF6366F1),
+                                const Color(0xFF8B5CF6),
+                              ],
                             ),
                           ),
+                          child: Icon(
+                            Icons.storefront,
+                            size: 64,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
                         ),
-                      )
-                      .toList(),
+                ),
+
+                // Gradiente oscuro en la parte inferior
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Rating badge
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          size: 16,
+                          color: Color(0xFFF59E0B),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          rating.toStringAsFixed(1),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Favorito
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: GestureDetector(
+                    onTap: () {
+                      // TODO: Agregar a favoritos
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.favorite_border,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
 
-          // Botón favorito
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            color: Colors.grey.shade400,
-            onPressed: () {},
-          ),
-        ],
+            // Información del bar
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nombre
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Ubicación
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          address,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Reviews
+                  Text(
+                    '$reviews reseñas',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Tags
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: tags.take(3).map((tag) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          tag,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF6366F1),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

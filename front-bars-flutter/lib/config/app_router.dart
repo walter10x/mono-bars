@@ -25,6 +25,7 @@ import '../modules/owner/views/owner_reservations_management_screen.dart';
 // Client screens
 import '../modules/client/views/client_home_screen.dart';
 import '../modules/client/views/client_bars_list_screen.dart';
+import '../modules/client/views/bar_detail_screen.dart';
 import '../modules/client/views/client_promotions_screen.dart';
 import '../modules/client/views/client_favorites_screen.dart';
 import '../modules/reservations/views/my_reservations_screen.dart';
@@ -56,6 +57,7 @@ class AppRouter {
   // Rutas de client
   static const String clientHome = '/client/home';
   static const String clientBars = '/client/bars';
+  static const String clientBarDetail = '/client/bars/:id';
   static const String clientPromotions = '/client/promotions';
   static const String clientFavorites = '/client/favorites';
   static const String clientReservations = '/client/reservations';
@@ -280,6 +282,15 @@ class AppRouter {
           builder: (context, state) => const ClientNavigationWrapper(
             initialIndex: 3,
           ),
+        ),
+        
+        GoRoute(
+          path: clientBarDetail,
+          name: 'clientBarDetail',
+          builder: (context, state) {
+            final barId = state.pathParameters['id']!;
+            return BarDetailScreen(barId: barId);
+          },
         ),
         
         GoRoute(
