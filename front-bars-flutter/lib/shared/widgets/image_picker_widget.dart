@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
 
 /// Widget reutilizable para seleccionar imágenes desde cámara o galería
 class ImagePickerWidget extends StatefulWidget {
@@ -100,7 +101,7 @@ class _ImagePickerWidgetState extends State<ImagePickerWidget> {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.network(
-          widget.initialImageUrl!,
+          ImageUrlHelper.getFullImageUrl(widget.initialImageUrl),
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             return _buildPlaceholder();

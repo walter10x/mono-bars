@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:front_bars_flutter/core/utils/extensions.dart';
+import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
 import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
 
@@ -64,7 +65,7 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
               ),
               background: bar.photo != null && bar.photo!.isNotEmpty
                   ? CachedNetworkImage(
-                      imageUrl: bar.photo!,
+                      imageUrl: ImageUrlHelper.getFullImageUrl(bar.photo),
                       fit: BoxFit.cover,
                       errorWidget: (context, error, stackTrace) =>
                           _buildPlaceholderImage(),

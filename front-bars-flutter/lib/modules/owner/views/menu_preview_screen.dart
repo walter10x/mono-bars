@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:front_bars_flutter/core/utils/extensions.dart';
+import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
 import 'package:front_bars_flutter/modules/menus/controllers/menus_controller.dart';
 import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
 
@@ -64,7 +65,7 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
               ),
               background: menu.photoUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: menu.photoUrl!,
+                      imageUrl: ImageUrlHelper.getFullImageUrl(menu.photoUrl),
                       fit: BoxFit.cover,
                       errorWidget: (context, error, stackTrace) =>
                           _buildPlaceholderImage(),
@@ -213,7 +214,7 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
-                imageUrl: item.photoUrl!,
+                imageUrl: ImageUrlHelper.getFullImageUrl(item.photoUrl),
                 width: 60,
                 height: 60,
                 fit: BoxFit.cover,
