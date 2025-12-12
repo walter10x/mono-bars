@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:front_bars_flutter/core/utils/extensions.dart';
+import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
 import 'package:front_bars_flutter/modules/menus/controllers/menus_controller.dart';
 import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
@@ -335,16 +337,12 @@ class _OwnerMenusManagementScreenState
     );
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -353,34 +351,75 @@ class _OwnerMenusManagementScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.restaurant_menu,
-                  color: Color(0xFF8B5CF6),
-                  size: 24,
-                ),
+          // Header con imagen del menú
+          Container(
+            height: 150,
+            decoration: BoxDecoration(
+              color: const Color(0xFF8B5CF6).withOpacity(0.1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      menu.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
-                      ),
+            ),
+            child: menu.photoUrl != null && menu.photoUrl!.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
                     ),
-                    const SizedBox(height: 2),
+                    child: CachedNetworkImage(
+                      imageUrl: ImageUrlHelper.getFullImageUrl(menu.photoUrl),
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Center(
+                        child: CircularProgressIndicator(
+                          color: const Color(0xFF8B5CF6).withOpacity(0.5),
+                        ),
+                      ),
+                      errorWidget: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            Icons.restaurant_menu,
+                            size: 64,
+                            color: const Color(0xFF8B5CF6).withOpacity(0.5),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : Center(
+                    child: Icon(
+                      Icons.restaurant_menu,
+                      size: 64,
+                      color: const Color(0xFF8B5CF6).withOpacity(0.5),
+                    ),
+                  ),
+          ),
+
+          // Contenido
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Nombre del menú y bar
+                Text(
+                  menu.name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.storefront,
+                      size: 16,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
                       bar.nameBar,
                       style: TextStyle(
@@ -390,94 +429,95 @@ class _OwnerMenusManagementScreenState
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          if (menu.description != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              menu.description!,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade700,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+                if (menu.description != null && menu.description!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    menu.description!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade700,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 16,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${menu.itemCount} productos',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Botones de acción
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // Botón Ver
+                    IconButton(
+                      onPressed: () {
+                        context.push('/owner/menus/${menu.id}/preview');
+                      },
+                      icon: const Icon(Icons.visibility),
+                      color: const Color(0xFF10B981),
+                      tooltip: 'Ver detalles',
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981).withOpacity(0.1),
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Botón Editar
+                    IconButton(
+                      onPressed: () {
+                        context.push('/owner/menus/${menu.id}/edit');
+                      },
+                      icon: const Icon(Icons.edit),
+                      color: const Color(0xFF6366F1),
+                      tooltip: 'Editar menú',
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Botón Eliminar
+                    IconButton(
+                      onPressed: () {
+                        _showDeleteConfirmation(menu);
+                      },
+                      icon: const Icon(Icons.delete_outline),
+                      color: const Color(0xFFEF4444),
+                      tooltip: 'Eliminar menú',
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFFEF4444).withOpacity(0.1),
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Icon(
-                Icons.inventory_2_outlined,
-                size: 16,
-                color: Colors.grey.shade600,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${menu.itemCount} productos',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              // Botón Ver
-              IconButton(
-                onPressed: () {
-                  context.push('/owner/menus/${menu.id}/preview');
-                },
-                icon: const Icon(Icons.visibility),
-                color: const Color(0xFF10B981),
-                tooltip: 'Ver detalles',
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981).withOpacity(0.1),
-                  padding: const EdgeInsets.all(12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Botón Editar
-              IconButton(
-                onPressed: () {
-                  context.push('/owner/menus/${menu.id}/edit');
-                },
-                icon: const Icon(Icons.edit),
-                color: const Color(0xFF6366F1),
-                tooltip: 'Editar menú',
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
-                  padding: const EdgeInsets.all(12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Botón Eliminar
-              IconButton(
-                onPressed: () {
-                  _showDeleteConfirmation(menu);
-                },
-                icon: const Icon(Icons.delete_outline),
-                color: const Color(0xFFEF4444),
-                tooltip: 'Eliminar menú',
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFFEF4444).withOpacity(0.1),
-                  padding: const EdgeInsets.all(12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),
