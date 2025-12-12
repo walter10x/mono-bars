@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MenusModule } from './menus/menus.module'; // <-- Importa el módulo menús
 import { PromotionsModule } from './promotions/promotions.module'; // <-- Importa el módulo promociones
+import { ReservationsModule } from './reservations/reservations.module'; // <-- Importa el módulo reservations
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PromotionsModule } from './promotions/promotions.module'; // <-- Import
     AuthModule,
     MenusModule, // <-- Agrega aquí
     PromotionsModule, // <-- Agrega promociones
+    ReservationsModule, // <-- Agrega reservations
   ],
   controllers: [AppController],
   providers: [AppService],
