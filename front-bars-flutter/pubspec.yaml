@@ -43,8 +43,13 @@ dependencies:
   # Validación de formularios
   formz: ^0.6.1
   
+  # Manejo de imágenes
+  image_picker: ^1.0.7
+  image: ^4.1.7
+  
   # Logging
   logger: ^2.0.2+1
+  http_parser: ^4.1.2
 
 dev_dependencies:
   flutter_test:
