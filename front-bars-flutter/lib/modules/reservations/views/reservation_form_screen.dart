@@ -36,7 +36,7 @@ class _ReservationFormScreenState
     // Cargar lista de bares si no hay uno preseleccionado
     if (widget.barId == null) {
       Future.microtask(() {
-        ref.read(barsControllerProvider.notifier).loadBars();
+        ref.read(barsControllerProvider.notifier).loadAllBars();
       });
     }
   }
