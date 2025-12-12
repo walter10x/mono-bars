@@ -3,14 +3,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/controllers/auth_controller.dart';
+import '../../bars/controllers/bars_controller.dart';
+import '../../menus/controllers/menus_controller.dart';
+import '../../promotions/controllers/promotions_controller.dart';
 
 /// Pantalla principal del dashboard para propietarios de bares
-class OwnerDashboardScreen extends ConsumerWidget {
+class OwnerDashboardScreen extends ConsumerStatefulWidget {
   const OwnerDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OwnerDashboardScreen> createState() => _OwnerDashboardScreenState();
+}
+
+class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar datos al montar el widget
+    Future.microtask(() {
+      ref.read(barsControllerProvider.notifier).loadMyBars();
+      ref.read(menusControllerProvider.notifier).loadMyMenus();
+      ref.read(promotionsControllerProvider.notifier).loadMyPromotions();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
+    final barsState = ref.watch(barsControllerProvider);
+    final menusState = ref.watch(menusControllerProvider);
+    final promotionsState = ref.watch(promotionsControllerProvider);
 
     return Scaffold(
       body: Container(
@@ -100,7 +122,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                         child: _buildStatCard(
                           icon: Icons.storefront,
                           title: 'Mis Bares',
-                          value: '3',
+                          value: '${barsState.bars.length}',
                           color: const Color(0xFF10B981),
                         ),
                       ),
@@ -115,7 +137,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                         child: _buildStatCard(
                           icon: Icons.restaurant_menu,
                           title: 'Menús',
-                          value: '12',
+                          value: '${menusState.menus.length}',
                           color: const Color(0xFFF59E0B),
                         ),
                       ),
@@ -136,7 +158,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                         child: _buildStatCard(
                           icon: Icons.local_offer,
                           title: 'Promociones',
-                          value: '7',
+                          value: '${promotionsState.promotions.length}',
                           color: const Color(0xFFEF4444),
                         ),
                       ),
