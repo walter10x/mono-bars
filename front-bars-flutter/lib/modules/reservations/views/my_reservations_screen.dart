@@ -51,7 +51,6 @@ class _MyReservationsScreenState extends ConsumerState<MyReservationsScreen> {
                 ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: Navegar a crear reserva
           context.push('/client/reservations/create');
         },
         icon: const Icon(Icons.add),

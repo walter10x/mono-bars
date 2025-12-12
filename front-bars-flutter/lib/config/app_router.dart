@@ -27,6 +27,8 @@ import '../modules/client/views/client_home_screen.dart';
 import '../modules/client/views/client_bars_list_screen.dart';
 import '../modules/client/views/client_promotions_screen.dart';
 import '../modules/client/views/client_favorites_screen.dart';
+import '../modules/reservations/views/my_reservations_screen.dart';
+import '../modules/reservations/views/reservation_form_screen.dart';
 
 /// Configuración de rutas de la aplicación usando GoRouter
 class AppRouter {
@@ -56,6 +58,8 @@ class AppRouter {
   static const String clientBars = '/client/bars';
   static const String clientPromotions = '/client/promotions';
   static const String clientFavorites = '/client/favorites';
+  static const String clientReservations = '/client/reservations';
+  static const String clientReservationCreate = '/client/reservations/create';
   
   // Rutas comunes
   static const String profile = '/profile';
@@ -276,6 +280,21 @@ class AppRouter {
           builder: (context, state) => const ClientNavigationWrapper(
             initialIndex: 3,
           ),
+        ),
+        
+        GoRoute(
+          path: clientReservations,
+          name: 'clientReservations',
+          builder: (context, state) => const MyReservationsScreen(),
+        ),
+        
+        GoRoute(
+          path: clientReservationCreate,
+          name: 'clientReservationCreate',
+          builder: (context, state) {
+            final barId = state.uri.queryParameters['barId'];
+            return ReservationFormScreen(barId: barId);
+          },
         ),
         
         // Rutas comunes
