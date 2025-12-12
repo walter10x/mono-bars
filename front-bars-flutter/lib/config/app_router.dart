@@ -17,6 +17,7 @@ import '../modules/owner/views/owner_promotions_management_screen.dart';
 import '../modules/owner/views/owner_statistics_screen.dart';
 import '../modules/owner/views/bar_form_screen.dart';
 import '../modules/owner/views/menu_form_screen.dart';
+import '../modules/owner/views/menu_preview_screen.dart';
 import '../modules/owner/views/promotion_form_screen.dart';
 
 // Client screens
@@ -40,6 +41,7 @@ class AppRouter {
   static const String ownerMenus = '/owner/menus';
   static const String ownerMenuCreate = '/owner/menus/create/:barId';
   static const String ownerMenuEdit = '/owner/menus/:id/edit';
+  static const String ownerMenuPreview = '/owner/menus/:id/preview';
   static const String ownerPromotions = '/owner/promotions';
   static const String ownerPromotionCreate = '/owner/promotions/create/:barId';
   static const String ownerPromotionEdit = '/owner/promotions/:id/edit';
@@ -186,6 +188,15 @@ class AppRouter {
           builder: (context, state) {
             final menuId = state.pathParameters['id'];
             return MenuFormScreen(menuId: menuId);
+          },
+        ),
+        
+        GoRoute(
+          path: ownerMenuPreview,
+          name: 'ownerMenuPreview',
+          builder: (context, state) {
+            final menuId = state.pathParameters['id']!;
+            return MenuPreviewScreen(menuId: menuId);
           },
         ),
         

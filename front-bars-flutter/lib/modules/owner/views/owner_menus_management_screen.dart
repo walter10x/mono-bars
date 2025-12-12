@@ -425,38 +425,55 @@ class _OwnerMenusManagementScreenState
           ),
           const SizedBox(height: 16),
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    context.push('/owner/menus/${menu.id}/edit');
-                  },
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('Editar'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF6366F1),
-                    side: const BorderSide(color: Color(0xFF6366F1)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+              // Botón Ver
+              IconButton(
+                onPressed: () {
+                  context.push('/owner/menus/${menu.id}/preview');
+                },
+                icon: const Icon(Icons.visibility),
+                color: const Color(0xFF10B981),
+                tooltip: 'Ver detalles',
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981).withOpacity(0.1),
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    _showDeleteConfirmation(menu);
-                  },
-                  icon: const Icon(Icons.delete, size: 18),
-                  label: const Text('Eliminar'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade50,
-                    foregroundColor: Colors.red,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+              const SizedBox(width: 8),
+              // Botón Editar
+              IconButton(
+                onPressed: () {
+                  context.push('/owner/menus/${menu.id}/edit');
+                },
+                icon: const Icon(Icons.edit),
+                color: const Color(0xFF6366F1),
+                tooltip: 'Editar menú',
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Botón Eliminar
+              IconButton(
+                onPressed: () {
+                  _showDeleteConfirmation(menu);
+                },
+                icon: const Icon(Icons.delete_outline),
+                color: const Color(0xFFEF4444),
+                tooltip: 'Eliminar menú',
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF4444).withOpacity(0.1),
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
