@@ -68,9 +68,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Future.delayed(Duration.zero, () {
           ref.read(authControllerProvider.notifier).clearError();
         });
-      } else if (current.isAuthenticated) {
-        // Navegar a la pantalla principal
-        context.go('/home');
+      } else if (current.isAuthenticated && current.user != null) {
+        // Navegar según el rol del usuario
+        final user = current.user!;
+        final userRole = user.role?.toLowerCase() ?? 'client';
+        
+        print('🔍 DEBUG: Usuario autenticado con rol: $userRole');
+        
+        // Verificar si es owner
+        final isOwner = userRole == 'owner' || user.roles.contains('owner');
+        
+        // Agregar delay para asegurar que el contexto esté listo
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (!mounted) return;
+          
+          if (isOwner) {
+            print('✅ Navegando a /owner/dashboard');
+            context.go('/owner/dashboard');
+          } else {
+            print('✅ Navegando a /client/home');
+            context.go('/client/home');
+          }
+        });
       }
     });
 

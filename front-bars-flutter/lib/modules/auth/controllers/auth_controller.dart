@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -137,6 +138,10 @@ class AuthController extends _$AuthController {
       // En caso de error, aún así cerrar sesión localmente
       state = AuthState.unauthenticated();
     }
+    
+    // Cerrar la aplicación después de hacer logout
+    await Future.delayed(const Duration(milliseconds: 200));
+    SystemNavigator.pop();
   }
 
   /// Actualizar datos del usuario en el estado
