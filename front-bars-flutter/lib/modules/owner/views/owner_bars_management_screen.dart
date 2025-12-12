@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/utils/extensions.dart';
+import '../../../core/utils/image_url_helper.dart';
 import '../../bars/controllers/bars_controller.dart';
 import '../../bars/models/bar_models.dart';
 
@@ -277,11 +279,16 @@ class _OwnerBarsManagementScreenState
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
                     ),
-                    child: Image.network(
-                      bar.photo!,
+                    child: CachedNetworkImage(
+                      imageUrl: ImageUrlHelper.getFullImageUrl(bar.photo),
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
+                      placeholder: (context, url) => Center(
+                        child: CircularProgressIndicator(
+                          color: const Color(0xFF6366F1).withOpacity(0.5),
+                        ),
+                      ),
+                      errorWidget: (context, error, stackTrace) {
                         return Center(
                           child: Icon(
                             Icons.storefront,
