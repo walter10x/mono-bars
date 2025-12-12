@@ -167,16 +167,12 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Gestión de reservas próximamente'),
-                            ),
-                          );
+                          context.go('/owner/reservations');
                         },
                         child: _buildStatCard(
                           icon: Icons.calendar_today,
-                          title: 'Reservas Hoy',
-                          value: '24',
+                          title: 'Reservas',
+                          value: '0', // TODO: Implementar contador real
                           color: const Color(0xFF8B5CF6),
                         ),
                       ),

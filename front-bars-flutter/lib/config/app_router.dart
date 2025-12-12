@@ -20,6 +20,7 @@ import '../modules/owner/views/bar_preview_screen.dart';
 import '../modules/owner/views/menu_form_screen.dart';
 import '../modules/owner/views/menu_preview_screen.dart';
 import '../modules/owner/views/promotion_form_screen.dart';
+import '../modules/owner/views/owner_reservations_management_screen.dart';
 
 // Client screens
 import '../modules/client/views/client_home_screen.dart';
@@ -47,6 +48,7 @@ class AppRouter {
   static const String ownerPromotions = '/owner/promotions';
   static const String ownerPromotionCreate = '/owner/promotions/create/:barId';
   static const String ownerPromotionEdit = '/owner/promotions/:id/edit';
+  static const String ownerReservations = '/owner/reservations';
   static const String ownerStatistics = '/owner/statistics';
   
   // Rutas de client
@@ -235,6 +237,12 @@ class AppRouter {
             final promotionId = state.pathParameters['id'];
             return PromotionFormScreen(promotionId: promotionId);
           },
+        ),
+        
+        GoRoute(
+          path: ownerReservations,
+          name: 'ownerReservations',
+          builder: (context, state) => const OwnerReservationsManagementScreen(),
         ),
         
         // Rutas de Client
