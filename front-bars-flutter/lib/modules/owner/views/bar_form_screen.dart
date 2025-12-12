@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:front_bars_flutter/core/utils/extensions.dart';
 import 'package:front_bars_flutter/shared/widgets/custom_button.dart';
 import 'package:front_bars_flutter/shared/widgets/custom_text_field.dart';
+import 'package:front_bars_flutter/shared/widgets/image_picker_widget.dart';
 import 'package:front_bars_flutter/shared/widgets/loading_overlay.dart';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
 import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
+import 'package:front_bars_flutter/core/services/image_upload_service.dart';
 
 /// Pantalla para crear o editar un bar
 class BarFormScreen extends ConsumerStatefulWidget {
@@ -47,6 +50,8 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
 
   bool _isEditMode = false;
   Bar? _currentBar;
+  File? _selectedImage;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -109,6 +114,8 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    setState(() => _isUploading = true);
+
     // Crear social links
     SocialLinks? socialLinks;
     if (_facebookController.text.isNotEmpty ||
@@ -161,6 +168,11 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
           .read(barsControllerProvider.notifier)
           .updateBar(widget.barId!, request);
 
+      // Si se actualizó y hay imagen nueva, subirla
+      if (success && _selectedImage != null && widget.barId != null) {
+        await _uploadImage(widget.barId!);
+      }
+
       if (success && mounted) {
         context.showSuccessSnackBar('Bar actualizado exitosamente');
         context.pop();
@@ -187,9 +199,40 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
           .read(barsControllerProvider.notifier)
           .createBar(request);
 
+      // Si se creó y hay imagen seleccionada, obtener el ID del bar y subir imagen
+      if (success && _selectedImage != null) {
+        final createdBar = ref.read(barsControllerProvider).bars.lastOrNull;
+        if (createdBar != null) {
+          await _uploadImage(createdBar.id);
+        }
+      }
+
       if (success && mounted) {
         context.showSuccessSnackBar('Bar creado exitosamente');
         context.pop();
+      }
+    }
+
+    if (!success && mounted) {
+      context.showErrorSnackBar('Error al guardar el bar');
+    }
+
+    setState(() => _isUploading = false);
+  }
+
+  Future<void> _uploadImage(String barId) async {
+    if (_selectedImage == null) return;
+
+    try {
+      final uploadService = ref.read(imageUploadServiceProvider);
+      await uploadService.uploadBarImage(barId, _selectedImage!);
+      
+      if (mounted) {
+        context.showSuccessSnackBar('Foto subida exitosamente');
+      }
+    } catch (e) {
+      if (mounted) {
+        context.showErrorSnackBar('Error al subir foto: $e');
       }
     }
   }
@@ -208,7 +251,7 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
     });
 
     return LoadingOverlay(
-      isLoading: isLoading,
+      isLoading: isLoading || _isUploading,
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -339,23 +382,16 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
                 _buildSectionTitle('Foto del Bar', Icons.image),
                 const SizedBox(height: 16),
                 
-                CustomTextField(
-                  controller: _photoController,
-                  label: 'URL de la Foto',
-                  hint: 'https://ejemplo.com/foto.jpg',
-                  prefixIcon: Icons.link,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.done,
-                ),
-                
-                const SizedBox(height: 8),
-                Text(
-                  'Próximamente: Subir foto desde tu dispositivo',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                    fontStyle: FontStyle.italic,
-                  ),
+                ImagePickerWidget(
+                  initialImageUrl: _photoController.text.isNotEmpty 
+                      ? _photoController.text 
+                      : null,
+                  label: 'Foto del Bar',
+                  onImageSelected: (file) {
+                    setState(() {
+                      _selectedImage = file;
+                    });
+                  },
                 ),
                 
                 const SizedBox(height: 32),
