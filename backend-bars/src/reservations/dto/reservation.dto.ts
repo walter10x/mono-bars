@@ -8,7 +8,7 @@ import {
   IsOptional,
   IsEnum,
 } from 'class-validator';
-import { ReservationStatus } from '../entities/reservation.entity';
+import { ReservationStatus } from '../reservation.schema';
 
 export class CreateReservationDto {
   @IsUUID()
