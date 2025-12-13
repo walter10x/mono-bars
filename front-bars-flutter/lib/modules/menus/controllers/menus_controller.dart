@@ -109,35 +109,62 @@ class MenusController extends _$MenusController {
 
   /// Cargar menús de un bar específico
   Future<void> loadMenusByBar(String barId) async {
+    print('🟢 MenusController.loadMenusByBar() INICIADO');
+    print('   Bar ID recibido: $barId');
+    
     state = state.copyWith(
       status: MenusStatus.loading,
       selectedBarId: barId,
     );
+    
+    print('   Estado cambiado a LOADING');
 
     try {
+      print('   Llamando a _menusService.getMenusByBar($barId)...');
       final result = await _menusService.getMenusByBar(barId);
+      
+      print('   Respuesta recibida del servicio');
 
       result.fold(
         (failure) {
+          print('   ❌ ERROR en respuesta:');
+          print('      Mensaje: ${failure.message}');
+          print('      Tipo: ${failure.runtimeType}');
+          
           state = state.copyWith(
             status: MenusStatus.error,
             errorMessage: failure.message,
           );
         },
         (menus) {
+          print('   ✅ EXITO: ${menus.length} menús recibidos');
+          for (var i = 0; i < menus.length; i++) {
+            print('      Menu $i: ${menus[i].name} (${menus[i].photoUrl ?? "sin foto"})');
+          }
+          
           state = state.copyWith(
             status: MenusStatus.loaded,
             menus: menus,
             clearError: true,
           );
+          
+          print('   Estado cambiado a LOADED con ${menus.length} menús');
         },
       );
     } catch (e) {
+      print('   ❌ EXCEPCION CAPTURADA:');
+      print('      Error: ${e.toString()}');
+      print('      StackTrace: ${StackTrace.current}');
+      
       state = state.copyWith(
         status: MenusStatus.error,
         errorMessage: 'Error inesperado: ${e.toString()}',
       );
     }
+    
+    print('🟢 MenusController.loadMenusByBar() FINALIZADO');
+    print('   Estado final: ${state.status}');
+    print('   Menús en estado: ${state.menus.length}');
   }
 
   /// Cargar un menú específico

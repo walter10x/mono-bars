@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
 import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
 import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
+import 'package:front_bars_flutter/modules/menus/controllers/menus_controller.dart';
+import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
 
 /// Pantalla de detalle de un bar para clientes
 class BarDetailScreen extends ConsumerStatefulWidget {
@@ -27,9 +29,20 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     
-    // Cargar el bar específico
+    // DEBUG: Mostrar el barId que estamos usando
+    print('╔════════════════════════════════════════╗');
+    print('║  BAR DETAIL SCREEN - INIT STATE       ║');
+    print('╠════════════════════════════════════════╣');
+    print('║  Bar ID: ${widget.barId}');
+    print('╚════════════════════════════════════════╝');
+    
+    // Cargar el bar específico y sus menús
     Future.microtask(() {
+      print('🔵 Cargando bar: ${widget.barId}');
       ref.read(barsControllerProvider.notifier).loadBar(widget.barId);
+      
+      print('🔵 Cargando menús para bar: ${widget.barId}');
+      ref.read(menusControllerProvider.notifier).loadMenusByBar(widget.barId);
     });
   }
 
@@ -43,6 +56,10 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   Widget build(BuildContext context) {
     final barsState = ref.watch(barsControllerProvider);
     final bar = barsState.selectedBar;
+    
+    // IMPORTANTE: Escuchar cambios en menús para forzar rebuild
+    final menusState = ref.watch(menusControllerProvider);
+    print('🔄 BarDetailScreen.build() - Menus: ${menusState.menus.length}, Status: ${menusState.status}');
 
     // Estado de carga
     if (barsState.status == BarsStatus.loading || bar == null) {
@@ -398,17 +415,25 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildTabContent(Bar bar) {
-    return SizedBox(
-      height: 400,
-      child: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildInfoTab(bar),
-          _buildMenuTab(bar),
-          _buildPromotionsTab(bar),
-          _buildLocationTab(bar),
-        ],
-      ),
+    return Consumer(
+      builder: (context, ref, child) {
+        final menusState = ref.watch(menusControllerProvider);
+        
+        print('🔄 _buildTabContent rebuilding - Menus: ${menusState.menus.length}');
+        
+        return SizedBox(
+          height: 400,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildInfoTab(bar),
+              _buildMenuTab(bar),
+              _buildPromotionsTab(bar),
+              _buildLocationTab(bar),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -545,6 +570,101 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildMenuTab(Bar bar) {
+    final menusState = ref.watch(menusControllerProvider);
+
+    // Debug: Verificar estado
+    print('═══════════════════════════════════════');
+    print('🍽️  MENU TAB RENDERING');
+    print('═══════════════════════════════════════');
+    print('Status: ${menusState.status}');
+    print('Menus count: ${menusState.menus.length}');
+    print('Has error: ${menusState.hasError}');
+    if (menusState.hasError) {
+      print('Error message: ${menusState.errorMessage}');
+    }
+    print('═══════════════════════════════════════');
+
+    // Si hay menús, mostrarlos INMEDIATAMENTE
+    if (menusState.menus.isNotEmpty) {
+      print('✅ MOSTRANDO ${menusState.menus.length} MENÚS');
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: menusState.menus.map((menu) {
+            print('   Renderizando: ${menu.name}');
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildMenuCard(menu),
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    // Estado de carga
+    if (menusState.status == MenusStatus.loading) {
+      print('⏳ MOSTRANDO LOADING');
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(
+            color: Color(0xFF6366F1),
+          ),
+        ),
+      );
+    }
+
+    // Estado de error
+    if (menusState.hasError) {
+      print('❌ MOSTRANDO ERROR');
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Error al cargar menús',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                menusState.errorMessage ?? 'Error desconocido',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  ref.read(menusControllerProvider.notifier).loadMenusByBar(bar.id);
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Si llegamos aquí, está vacío
+    print('📭 MOSTRANDO VACÍO');
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -558,7 +678,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              'Menú próximamente',
+              'Sin menús disponibles',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -567,7 +687,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              'El menú de este bar estará disponible pronto',
+              'Este bar aún no ha publicado su menú',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade500,
@@ -576,6 +696,134 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMenuCard(Menu menu) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Imagen del menú
+          if (menu.photoUrl != null && menu.photoUrl!.isNotEmpty)
+            Container(
+              height: 120,
+              width: double.infinity,
+              child: Image.network(
+                ImageUrlHelper.getFullImageUrl(menu.photoUrl),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: const Color(0xFF6366F1).withOpacity(0.1),
+                    child: Icon(
+                      Icons.restaurant_menu,
+                      size: 48,
+                      color: const Color(0xFF6366F1).withOpacity(0.5),
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: Colors.grey.shade100,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                        color: const Color(0xFF6366F1),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            )
+          else
+            Container(
+              height: 120,
+              width: double.infinity,
+              color: const Color(0xFF6366F1).withOpacity(0.1),
+              child: Icon(
+                Icons.restaurant_menu,
+                size: 48,
+                color: const Color(0xFF6366F1).withOpacity(0.5),
+              ),
+            ),
+
+          // Información del menú
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Nombre del menú
+                Text(
+                  menu.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Descripción
+                if (menu.description != null && menu.description!.isNotEmpty)
+                  Text(
+                    menu.description!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                const SizedBox(height: 12),
+
+                // Botón ver menú completo
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      context.push(
+                        '/client/menu/${menu.id}',
+                        extra: menu,
+                      );
+                    },
+                    icon: const Icon(Icons.visibility, size: 18),
+                    label: const Text('Ver Menú Completo'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF6366F1),
+                      side: const BorderSide(color: Color(0xFF6366F1)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
