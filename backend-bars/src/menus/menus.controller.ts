@@ -108,6 +108,7 @@ export class MenusController {
 
   @Get('bar/:barId')
   async findByBar(@Param('barId') barId: string) {
+    this.logger.log(`Obteniendo menús del bar: ${barId}`);
     return this.menusService.findAll(barId);
   }
 
