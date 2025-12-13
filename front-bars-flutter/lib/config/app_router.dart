@@ -26,10 +26,12 @@ import '../modules/owner/views/owner_reservations_management_screen.dart';
 import '../modules/client/views/client_home_screen.dart';
 import '../modules/client/views/client_bars_list_screen.dart';
 import '../modules/client/views/bar_detail_screen.dart';
+import '../modules/client/views/menu_preview_screen.dart' as client;
 import '../modules/client/views/client_promotions_screen.dart';
 import '../modules/client/views/client_favorites_screen.dart';
 import '../modules/reservations/views/my_reservations_screen.dart';
 import '../modules/reservations/views/reservation_form_screen.dart';
+import '../modules/menus/models/menu_models.dart';
 
 /// Configuración de rutas de la aplicación usando GoRouter
 class AppRouter {
@@ -58,6 +60,7 @@ class AppRouter {
   static const String clientHome = '/client/home';
   static const String clientBars = '/client/bars';
   static const String clientBarDetail = '/client/bars/:id';
+  static const String clientMenuPreview = '/client/menu/:menuId';
   static const String clientPromotions = '/client/promotions';
   static const String clientFavorites = '/client/favorites';
   static const String clientReservations = '/client/reservations';
@@ -290,6 +293,15 @@ class AppRouter {
           builder: (context, state) {
             final barId = state.pathParameters['id']!;
             return BarDetailScreen(barId: barId);
+          },
+        ),
+        
+        GoRoute(
+          path: clientMenuPreview,
+          name: 'clientMenuPreview',
+          builder: (context, state) {
+            final menu = state.extra as Menu;
+            return client.MenuPreviewScreen(menu: menu);
           },
         ),
         
