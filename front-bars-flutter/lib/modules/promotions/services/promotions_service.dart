@@ -1,20 +1,21 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import '../models/promotion_simple_model.dart';
 import '../models/promotion_models.dart';
 import '../../auth/controllers/auth_controller.dart';
 
 class PromotionsService {
   static const String baseUrl = 'http://10.0.2.2:3000/promotions';
 
-  Future<List<Promotion>> getPromotions({String? barId}) async {
+  Future<List<PromotionSimple>> getPromotions({String? barId}) async {
     try {
       final url = barId != null ? '$baseUrl/bar/$barId' : baseUrl;
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => Promotion.fromJson(json)).toList();
+        return data.map((json) => PromotionSimple.fromJson(json)).toList();
       } else {
         throw Exception('Error al cargar promociones: ${response.statusCode}');
       }

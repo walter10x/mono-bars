@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/promotion_models.dart';
+import '../models/promotion_simple_model.dart';
+import '../models/promotion_models.dart'; // For CreatePromotionRequest and owner operations
 import '../services/promotions_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../../core/storage/secure_storage_service.dart';
@@ -9,7 +10,7 @@ part 'promotions_controller.g.dart';
 
 // Estado para las promociones
 class PromotionsState {
-  final List<Promotion> promotions;
+  final List<PromotionSimple> promotions;
   final bool isLoading;
   final String? error;
 
@@ -20,7 +21,7 @@ class PromotionsState {
   });
 
   PromotionsState copyWith({
-    List<Promotion>? promotions,
+    List<PromotionSimple>? promotions,
     bool? isLoading,
     String? error,
   }) {
@@ -53,8 +54,29 @@ class PromotionsController extends _$PromotionsController {
       final service = ref.read(promotionsServiceProvider);
       final promotions = await service.getMyPromotions(token);
 
+      // Convert Promotion to PromotionSimple for state compatibility
+      final simplePromotions = promotions.map((promo) {
+        return PromotionSimple(
+          id: promo.id,
+          title: promo.title,
+          description: promo.description,
+          barId: promo.barId,
+          discountPercentage: promo.discountPercentage,
+          validFrom: promo.startDate,
+          validUntil: promo.endDate,
+          isActive: promo.status == PromotionStatus.active,
+          photoUrl: promo.image,
+          termsAndConditions: null,
+          createdAt: promo.createdAt,
+          updatedAt: promo.updatedAt,
+        );
+      }).toList();
+
+      print('🎁 LOADED ${simplePromotions.length} PROMOTIONS FOR OWNER');
+      simplePromotions.forEach((p) => print('  - ${p.title} (${p.barId})'));
+
       state = state.copyWith(
-        promotions: promotions,
+        promotions: simplePromotions,
         isLoading: false,
       );
     } catch (e) {
@@ -98,8 +120,8 @@ class PromotionsController extends _$PromotionsController {
       final service = ref.read(promotionsServiceProvider);
       final newPromotion = await service.createPromotion(request, token);
 
+      // Don't update state for owner operations
       state = state.copyWith(
-        promotions: [...state.promotions, newPromotion],
         isLoading: false,
       );
     } catch (e) {
@@ -125,12 +147,8 @@ class PromotionsController extends _$PromotionsController {
       final service = ref.read(promotionsServiceProvider);
       final updatedPromotion = await service.updatePromotion(id, updates, token);
 
-      final updatedList = state.promotions.map((p) {
-        return p.id == id ? updatedPromotion : p;
-      }).toList();
-
+      // Don't update state for owner operations
       state = state.copyWith(
-        promotions: updatedList,
         isLoading: false,
       );
     } catch (e) {
