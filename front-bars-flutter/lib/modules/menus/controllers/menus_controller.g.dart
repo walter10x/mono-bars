@@ -6,7 +6,7 @@ part of 'menus_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$menusControllerHash() => r'81821867add2d4fed1197f6b3663ad15e9fa1041';
+String _$menusControllerHash() => r'7078098b61c4efa8d3916e9e996877ecc71c4151';
 
 /// Controlador de menús usando Riverpod
 ///

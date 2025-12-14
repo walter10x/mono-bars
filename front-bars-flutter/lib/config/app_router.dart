@@ -20,6 +20,7 @@ import '../modules/owner/views/bar_preview_screen.dart';
 import '../modules/owner/views/menu_form_screen.dart';
 import '../modules/owner/views/menu_preview_screen.dart';
 import '../modules/owner/views/promotion_form_screen.dart';
+import '../modules/owner/views/promotion_preview_screen.dart';
 import '../modules/owner/views/owner_reservations_management_screen.dart';
 
 // Client screens
@@ -32,6 +33,7 @@ import '../modules/client/views/client_favorites_screen.dart';
 import '../modules/reservations/views/my_reservations_screen.dart';
 import '../modules/reservations/views/reservation_form_screen.dart';
 import '../modules/menus/models/menu_models.dart';
+import '../modules/promotions/models/promotion_models.dart';
 
 /// Configuración de rutas de la aplicación usando GoRouter
 class AppRouter {
@@ -53,6 +55,7 @@ class AppRouter {
   static const String ownerPromotions = '/owner/promotions';
   static const String ownerPromotionCreate = '/owner/promotions/create/:barId';
   static const String ownerPromotionEdit = '/owner/promotions/:id/edit';
+  static const String ownerPromotionPreview = '/owner/promotions/:id/preview';
   static const String ownerReservations = '/owner/reservations';
   static const String ownerStatistics = '/owner/statistics';
   
@@ -245,6 +248,15 @@ class AppRouter {
           builder: (context, state) {
             final promotionId = state.pathParameters['id'];
             return PromotionFormScreen(promotionId: promotionId);
+          },
+        ),
+        
+        GoRoute(
+          path: ownerPromotionPreview,
+          name: 'ownerPromotionPreview',
+          builder: (context, state) {
+            final promotion = state.extra as Promotion;
+            return OwnerPromotionPreviewScreen(promotion: promotion);
           },
         ),
         
