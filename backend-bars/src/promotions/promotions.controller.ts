@@ -107,6 +107,7 @@ export class PromotionsController {
 
   @Get('bar/:barId')
   async findByBar(@Param('barId') barId: string) {
+    this.logger.log(`Obteniendo promociones del bar: ${barId}`);
     return this.promotionsService.findAll(barId);
   }
 
