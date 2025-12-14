@@ -7,6 +7,7 @@ import 'package:front_bars_flutter/core/utils/extensions.dart';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
 import 'package:front_bars_flutter/modules/promotions/controllers/promotions_controller.dart';
 import 'package:front_bars_flutter/modules/promotions/models/promotion_models.dart';
+import 'package:front_bars_flutter/modules/promotions/models/promotion_simple_model.dart';
 
 /// Pantalla de gestión de promociones para propietarios
 class OwnerPromotionsManagementScreen extends ConsumerStatefulWidget {
@@ -48,6 +49,11 @@ class _OwnerPromotionsManagementScreenState
         : promotionsState.promotions
             .where((p) => p.barId == selectedBarId)
             .toList();
+
+    print('📊 OWNER PROMOTIONS SCREEN');
+    print('   Total promotions: ${promotionsState.promotions.length}');
+    print('   Filtered: ${filteredPromotions.length}');
+    print('   Selected bar: $selectedBarId');
 
     return Scaffold(
       body: Container(
@@ -184,7 +190,44 @@ class _OwnerPromotionsManagementScreenState
     );
   }
 
-  Widget _buildContent(PromotionsState state, List<Promotion> promotions) {
+  /// Convierte PromotionSimple a Promotion para compatibilidad
+  List<Promotion> _convertToPromotionList(List<dynamic> simplePromotions) {
+    return simplePromotions.map((promo) {
+      // Si ya es Promotion, retornar directamente
+      if (promo is Promotion) return promo;
+      
+      // Si es PromotionSimple, convertir
+      final simple = promo as PromotionSimple;
+      return Promotion(
+        id: simple.id,
+        title: simple.title,
+        description: simple.description ?? '',
+        type: PromotionType.discount, // Default type
+        status: simple.isActive ? PromotionStatus.active : PromotionStatus.paused,
+        barId: simple.barId,
+        image: simple.photoUrl,
+        images: simple.photoUrl != null ? [simple.photoUrl!] : [],
+        discountPercentage: simple.discountPercentage,
+        discountAmount: null,
+        minimumPurchase: null,
+        startDate: simple.validFrom,
+        endDate: simple.validUntil,
+        applicableItems: const [],
+        applicableCategories: const [],
+        maxUses: null,
+        currentUses: 0,
+        daysOfWeek: const [],
+        startTime: null,
+        endTime: null,
+        requiresCode: false,
+        promotionCode: null,
+        createdAt: simple.createdAt,
+        updatedAt: simple.updatedAt,
+      );
+    }).toList();
+  }
+
+  Widget _buildContent(PromotionsState state, List<PromotionSimple> promotions) {
     if (state.isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -273,7 +316,9 @@ class _OwnerPromotionsManagementScreenState
     );
   }
 
-  Widget _buildPromotionCard(Promotion promotion) {
+  Widget _buildPromotionCard(PromotionSimple promotionSimple) {
+    // Convert to Promotion for display
+    final promotion = _convertToPromotionList([promotionSimple]).first;
     final barsState = ref.watch(barsControllerProvider);
     
     // Encontrar el bar correspondiente
@@ -425,41 +470,47 @@ class _OwnerPromotionsManagementScreenState
           ),
           const SizedBox(height: 16),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Editar promoción
-                    context.showInfoSnackBar('Editar promoción - En desarrollo');
-                  },
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('Editar'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFEC4899),
-                    side: const BorderSide(color: Color(0xFFEC4899)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+              // Ver promoción
+              IconButton.filled(
+                onPressed: () {
+                  context.push(
+                    '/owner/promotions/${promotion.id}/preview',
+                    extra: promotion,
+                  );
+                },
+                icon: const Icon(Icons.visibility),
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
+                  foregroundColor: const Color(0xFF6366F1),
                 ),
+                tooltip: 'Ver promoción',
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    _showDeleteConfirmation(promotion);
-                  },
-                  icon: const Icon(Icons.delete, size: 18),
-                  label: const Text('Eliminar'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade50,
-                    foregroundColor: Colors.red,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+              // Editar
+              IconButton.filled(
+                onPressed: () {
+                  // TODO: Editar promoción
+                  context.showInfoSnackBar('Editar promoción - En desarrollo');
+                },
+                icon: const Icon(Icons.edit),
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFFEC4899).withOpacity(0.1),
+                  foregroundColor: const Color(0xFFEC4899),
                 ),
+                tooltip: 'Editar',
+              ),
+              // Eliminar
+              IconButton.filled(
+                onPressed: () {
+                  _showDeleteConfirmation(promotion);
+                },
+                icon: const Icon(Icons.delete),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.red.shade50,
+                  foregroundColor: Colors.red,
+                ),
+                tooltip: 'Eliminar',
               ),
             ],
           ),
