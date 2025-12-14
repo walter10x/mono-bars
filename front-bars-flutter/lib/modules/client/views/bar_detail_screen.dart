@@ -6,6 +6,8 @@ import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
 import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
 import 'package:front_bars_flutter/modules/menus/controllers/menus_controller.dart';
 import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
+import 'package:front_bars_flutter/modules/promotions/controllers/promotions_controller.dart';
+import 'package:front_bars_flutter/modules/promotions/models/promotion_simple_model.dart';
 
 /// Pantalla de detalle de un bar para clientes
 class BarDetailScreen extends ConsumerStatefulWidget {
@@ -43,6 +45,9 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
       
       print('🔵 Cargando menús para bar: ${widget.barId}');
       ref.read(menusControllerProvider.notifier).loadMenusByBar(widget.barId);
+      
+      print('🔵 Cargando promociones para bar: ${widget.barId}');
+      ref.read(promotionsControllerProvider.notifier).loadPromotionsByBar(widget.barId);
     });
   }
 
@@ -57,9 +62,10 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
     final barsState = ref.watch(barsControllerProvider);
     final bar = barsState.selectedBar;
     
-    // IMPORTANTE: Escuchar cambios en menús para forzar rebuild
+    // IMPORTANTE: Escuchar cambios en menús y promociones para forzar rebuild
     final menusState = ref.watch(menusControllerProvider);
-    print('🔄 BarDetailScreen.build() - Menus: ${menusState.menus.length}, Status: ${menusState.status}');
+    final promotionsState = ref.watch(promotionsControllerProvider);
+    print('🔄 BarDetailScreen.build() - Menus: ${menusState.menus.length}, Promotions: ${promotionsState.promotions.length}');
 
     // Estado de carga
     if (barsState.status == BarsStatus.loading || bar == null) {
@@ -829,6 +835,101 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildPromotionsTab(Bar bar) {
+    final promotionsState = ref.watch(promotionsControllerProvider);
+
+    // Debug: Verificar estado
+    print('═══════════════════════════════════════');
+    print('🎁  PROMOTIONS TAB RENDERING');
+    print('═══════════════════════════════════════');
+    print('Loading: ${promotionsState.isLoading}');
+    print('Promotions count: ${promotionsState.promotions.length}');
+    print('Has error: ${promotionsState.error != null}');
+    if (promotionsState.error != null) {
+      print('Error message: ${promotionsState.error}');
+    }
+    print('═══════════════════════════════════════');
+
+    // Si hay promociones, mostrarlas INMEDIATAMENTE
+    if (promotionsState.promotions.isNotEmpty) {
+      print('✅ MOSTRANDO ${promotionsState.promotions.length} PROMOCIONES');
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: promotionsState.promotions.map((promotion) {
+            print('   Renderizando: ${promotion.title}');
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildPromotionCard(promotion),
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    // Estado de carga
+    if (promotionsState.isLoading) {
+      print('⏳ MOSTRANDO LOADING');
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(
+            color: Color(0xFF6366F1),
+          ),
+        ),
+      );
+    }
+
+    // Estado de error
+    if (promotionsState.error != null) {
+      print('❌ MOSTRANDO ERROR');
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Error al cargar promociones',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                promotionsState.error ?? 'Error desconocido',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  ref.read(promotionsControllerProvider.notifier).loadPromotionsByBar(bar.id);
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Si llegamos aquí, está vacío
+    print('📭 MOSTRANDO VACÍO');
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -862,6 +963,175 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildPromotionCard(PromotionSimple promotion) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Imagen de la promoción
+          if (promotion.photoUrl != null && promotion.photoUrl!.isNotEmpty)
+            Container(
+              height: 160,
+              width: double.infinity,
+              child: Image.network(
+                ImageUrlHelper.getFullImageUrl(promotion.photoUrl),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: const Color(0xFFF59E0B).withOpacity(0.1),
+                    child: Icon(
+                      Icons.local_offer,
+                      size: 64,
+                      color: const Color(0xFFF59E0B).withOpacity(0.5),
+                    ),
+                  );
+                },
+              ),
+            )
+          else
+            Container(
+              height: 160,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFFF59E0B).withOpacity(0.7),
+                    const Color(0xFFEF4444).withOpacity(0.7),
+                  ],
+                ),
+              ),
+              child: const Icon(
+                Icons.local_offer,
+                size: 64,
+                color: Colors.white,
+              ),
+            ),
+
+          // Contenido
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Badge de descuento
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${promotion.discountPercentage?.toStringAsFixed(0) ?? "0"}% OFF',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Título
+                Text(
+                  promotion.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                const SizedBox(height: 8),
+
+                // Descripción
+                if (promotion.description != null && promotion.description!.isNotEmpty)
+                  Text(
+                    promotion.description!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                const SizedBox(height: 12),
+
+                // Fechas
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 16, color: Color(0xFF6B7280)),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        'Válido hasta: ${_formatDate(promotion.validUntil)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Botón ver promoción completa
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      context.push(
+                        '/client/promotion/${promotion.id}',
+                        extra: promotion,
+                      );
+                    },
+                    icon: const Icon(Icons.visibility, size: 18),
+                    label: const Text('Ver Promoción Completa'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF6366F1),
+                      side: const BorderSide(color: Color(0xFF6366F1)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+      'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
   Widget _buildLocationTab(Bar bar) {
