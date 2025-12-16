@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   Logger,
   UseGuards,
   Request,
@@ -64,6 +65,12 @@ async create(@Body() createBarDto: CreateBarDto, @Request() req): Promise<Bar> {
   async findAll(): Promise<Bar[]> {
     this.logger.log('Recibiendo solicitud para listar todos los bares');
     return this.barsService.findAll();
+  }
+
+  @Get('search')
+  async search(@Query('q') query: string): Promise<Bar[]> {
+    this.logger.log(`Búsqueda de bares con query: "${query}"`);
+    return this.barsService.search(query || '');
   }
 
   @Get(':id')

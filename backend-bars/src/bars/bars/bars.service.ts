@@ -62,6 +62,23 @@ export class BarsService {
     return this.barModel.find().exec();
   }
 
+  async search(query: string): Promise<Bar[]> {
+    this.logger.log(`Buscando bares con query: "${query}"`);
+    
+    if (!query || query.trim().length === 0) {
+      return this.findAll();
+    }
+
+    const regex = new RegExp(query.trim(), 'i'); // case-insensitive
+    return this.barModel.find({
+      $or: [
+        { nameBar: regex },
+        { location: regex },
+        { description: regex }
+      ]
+    }).exec();
+  }
+
   async findByOwner(ownerId: string): Promise<Bar[]> {
     this.logger.log(`Buscando bares del propietario: ${ownerId}`);
     const ownerObjectId = new Types.ObjectId(ownerId);
