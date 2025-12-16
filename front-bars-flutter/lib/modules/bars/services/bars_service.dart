@@ -11,6 +11,7 @@ abstract class BarsService {
   Future<Either<Failure, List<Bar>>> getMyBars();
   Future<Either<Failure, Bar>> getBar(String id);
   Future<Either<Failure, List<Bar>>> getAllBars();
+  Future<Either<Failure, List<Bar>>> searchBars(String query);
   Future<Either<Failure, Bar>> createBar(CreateBarRequest request);
   Future<Either<Failure, Bar>> updateBar(String id, UpdateBarRequest request);
   Future<Either<Failure, void>> deleteBar(String id);
@@ -81,6 +82,30 @@ class BarsServiceImpl implements BarsService {
       } else {
         return const Left(ServerFailure(
           message: 'Error al obtener bares',
+          statusCode: 500,
+        ));
+      }
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } catch (e) {
+      return Left(GeneralFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Bar>>> searchBars(String query) async {
+    try {
+      final encodedQuery = Uri.encodeComponent(query);
+      final response = await _dioClient.get<List<dynamic>>('/bars/search?q=$encodedQuery');
+
+      if (response.statusCode == 200 && response.data != null) {
+        final bars = (response.data as List)
+            .map((barJson) => Bar.fromJson(barJson as Map<String, dynamic>))
+            .toList();
+        return Right(bars);
+      } else {
+        return const Left(ServerFailure(
+          message: 'Error al buscar bares',
           statusCode: 500,
         ));
       }

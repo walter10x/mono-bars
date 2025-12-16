@@ -6,7 +6,7 @@ part of 'bars_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$barsControllerHash() => r'f66ec1761b063f50f290e1e67f1292acf6ac5bd6';
+String _$barsControllerHash() => r'd0aa8c05da1218111c9b7777ac74ae1b8f351eb4';
 
 /// Controlador de bares usando Riverpod
 ///

@@ -132,6 +132,36 @@ class BarsController extends _$BarsController {
     }
   }
 
+  /// Buscar bares por texto (nombre, ubicación, descripción)
+  Future<void> searchBars(String query) async {
+    state = state.copyWith(status: BarsStatus.loading);
+
+    try {
+      final result = await _barsService.searchBars(query);
+
+      result.fold(
+        (failure) {
+          state = state.copyWith(
+            status: BarsStatus.error,
+            errorMessage: failure.message,
+          );
+        },
+        (bars) {
+          state = state.copyWith(
+            status: BarsStatus.loaded,
+            bars: bars,
+            clearError: true,
+          );
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: BarsStatus.error,
+        errorMessage: 'Error inesperado: ${e.toString()}',
+      );
+    }
+  }
+
   /// Cargar un bar específico
   Future<void> loadBar(String id) async {
     state = state.copyWith(status: BarsStatus.loading);
