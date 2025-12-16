@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 
 import '../../auth/controllers/auth_controller.dart';
 import '../../bars/controllers/bars_controller.dart';
@@ -15,12 +16,37 @@ class ClientHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
     // Cargar bares cuando se inicializa la pantalla
     Future.microtask(() {
       ref.read(barsControllerProvider.notifier).loadAllBars();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      setState(() {
+        _isSearching = query.isNotEmpty;
+      });
+      if (query.isEmpty) {
+        ref.read(barsControllerProvider.notifier).loadAllBars();
+      } else {
+        ref.read(barsControllerProvider.notifier).searchBars(query);
+      }
     });
   }
 
@@ -109,7 +135,6 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -122,19 +147,30 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                       ],
                     ),
                     child: TextField(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
                       decoration: InputDecoration(
-                        hintText: 'Buscar bares, eventos, promociones...',
-                        border: InputBorder.none,
-                        icon: Icon(Icons.search, color: Colors.grey.shade400),
+                        hintText: 'Buscar por nombre, ciudad, dirección...',
                         hintStyle: TextStyle(color: Colors.grey.shade400),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF6366F1),
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, color: Colors.grey),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _onSearchChanged('');
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                       ),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Función disponible próximamente'),
-                          ),
-                        );
-                      },
                     ),
                   ),
                 ),
@@ -207,15 +243,15 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
 
                       const SizedBox(height: 32),
 
-                      // Bares cercanos
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24.0),
+                      // Bares cercanos o resultados de búsqueda
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '📍 Bares Cerca de Ti',
-                              style: TextStyle(
+                              _isSearching ? '🔍 Resultados de búsqueda' : '📍 Bares Cerca de Ti',
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF1F2937),
@@ -344,8 +380,8 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
       );
     }
 
-    // Mostrar bares (máximo 3)
-    final barsToShow = barsState.bars.take(3).toList();
+    // Mostrar bares (máximo 3 si no está buscando, todos si está buscando)
+    final barsToShow = _isSearching ? barsState.bars : barsState.bars.take(3).toList();
     
     return Column(
       children: [
@@ -371,8 +407,8 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
           );
         }).toList(),
         
-        // Botón "Ver más" si hay más de 3 bares
-        if (barsState.bars.length > 3)
+        // Botón "Ver más" si hay más de 3 bares y NO está buscando
+        if (barsState.bars.length > 3 && !_isSearching)
           TextButton.icon(
             onPressed: () {
               // Navegar a la lista completa de bares
