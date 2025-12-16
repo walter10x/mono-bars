@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:async';
 
-/// Pantalla de lista de bares para clientes
+import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
+import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
+import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
+
+/// Pantalla de lista de bares para clientes con búsqueda
 class ClientBarsListScreen extends ConsumerStatefulWidget {
   const ClientBarsListScreen({super.key});
 
@@ -10,10 +16,42 @@ class ClientBarsListScreen extends ConsumerStatefulWidget {
 }
 
 class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
   String _selectedFilter = 'all';
 
   @override
+  void initState() {
+    super.initState();
+    // Cargar todos los bares al iniciar
+    Future.microtask(() {
+      ref.read(barsControllerProvider.notifier).loadAllBars();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    // Debounce de 300ms para no hacer demasiadas peticiones
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (query.isEmpty) {
+        ref.read(barsControllerProvider.notifier).loadAllBars();
+      } else {
+        ref.read(barsControllerProvider.notifier).searchBars(query);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final barsState = ref.watch(barsControllerProvider);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -29,13 +67,13 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
-              const Padding(
-                padding: EdgeInsets.all(24.0),
+              // Header con búsqueda
+              Padding(
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Descubre Bares',
                       style: TextStyle(
                         fontSize: 28,
@@ -43,12 +81,53 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
+                    const SizedBox(height: 4),
+                    const Text(
                       'Explora los mejores locales',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white70,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Campo de búsqueda
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
+                        decoration: InputDecoration(
+                          hintText: 'Buscar por nombre, ciudad, dirección...',
+                          hintStyle: TextStyle(color: Colors.grey.shade400),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: Color(0xFF6366F1),
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, color: Colors.grey),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _onSearchChanged('');
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -64,19 +143,15 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                     children: [
                       _buildFilterChip('Todos', 'all'),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Cerca de mí', 'nearby'),
+                      _buildFilterChip('Abierto', 'open'),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Mejor valorados', 'top'),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Promociones', 'promos'),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Abierto ahora', 'open'),
+                      _buildFilterChip('Con Promociones', 'promos'),
                     ],
                   ),
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Lista de bares
               Expanded(
@@ -88,76 +163,132 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                       topRight: Radius.circular(30),
                     ),
                   ),
-                  child: ListView(
-                    padding: const EdgeInsets.all(24.0),
-                    children: [
-                      _buildBarListItem(
-                        name: 'El Rincón del Jazz',
-                        address: 'Calle Mayor 45, Madrid',
-                        distance: '0.5 km',
-                        rating: 4.5,
-                        reviews: 128,
-                        price: '€€',
-                        tags: ['Jazz', 'Cócteles', 'Ambiente', 'Terraza'],
-                        isOpen: true,
-                        hasPromotion: true,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBarListItem(
-                        name: 'La Taberna Moderna',
-                        address: 'Avenida de la Paz 12, Madrid',
-                        distance: '0.8 km',
-                        rating: 4.2,
-                        reviews: 89,
-                        price: '€',
-                        tags: ['Tapas', 'Cerveza', 'Terraza'],
-                        isOpen: true,
-                        hasPromotion: false,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBarListItem(
-                        name: 'Bar Central',
-                        address: 'Plaza del Sol 3, Madrid',
-                        distance: '1.2 km',
-                        rating: 4.7,
-                        reviews: 256,
-                        price: '€€€',
-                        tags: ['Clásico', 'Vinos', 'Comida'],
-                        isOpen: false,
-                        hasPromotion: true,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBarListItem(
-                        name: 'La Cervecería Artesana',
-                        address: 'Calle de la Libertad 8, Madrid',
-                        distance: '1.5 km',
-                        rating: 4.4,
-                        reviews: 178,
-                        price: '€€',
-                        tags: ['Cerveza Artesanal', 'Burguer', 'Moderno'],
-                        isOpen: true,
-                        hasPromotion: true,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBarListItem(
-                        name: 'El Pub Irlandés',
-                        address: 'Calle Gran Vía 67, Madrid',
-                        distance: '2.0 km',
-                        rating: 4.3,
-                        reviews: 145,
-                        price: '€€',
-                        tags: ['Pub', 'Música en Vivo', 'Deportes'],
-                        isOpen: true,
-                        hasPromotion: false,
-                      ),
-                    ],
-                  ),
+                  child: _buildBarsList(barsState),
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBarsList(BarsState barsState) {
+    // Estado de carga
+    if (barsState.status == BarsStatus.loading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF6366F1),
+        ),
+      );
+    }
+
+    // Estado de error
+    if (barsState.status == BarsStatus.error) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Error al cargar bares',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                barsState.errorMessage ?? 'Error desconocido',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
+                  ref.read(barsControllerProvider.notifier).loadAllBars();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Filtrar bares según el filtro seleccionado
+    List<Bar> filteredBars = barsState.bars;
+    if (_selectedFilter == 'open') {
+      filteredBars = filteredBars.where((bar) => bar.isActive).toList();
+    }
+
+    // Lista vacía
+    if (filteredBars.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 64,
+                color: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _searchController.text.isNotEmpty
+                    ? 'No se encontraron bares'
+                    : 'No hay bares disponibles',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _searchController.text.isNotEmpty
+                    ? 'Intenta con otros términos de búsqueda'
+                    : 'Vuelve a intentar más tarde',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Lista de bares
+    return ListView.builder(
+      padding: const EdgeInsets.all(24.0),
+      itemCount: filteredBars.length,
+      itemBuilder: (context, index) {
+        final bar = filteredBars[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildBarListItem(bar),
+        );
+      },
     );
   }
 
@@ -187,26 +318,18 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
     );
   }
 
-  Widget _buildBarListItem({
-    required String name,
-    required String address,
-    required String distance,
-    required double rating,
-    required int reviews,
-    required String price,
-    required List<String> tags,
-    required bool isOpen,
-    required bool hasPromotion,
-  }) {
+  Widget _buildBarListItem(Bar bar) {
+    // Rating simulado
+    final rating = 4.0 + (bar.id.hashCode % 10) / 10;
+    final reviews = 50 + (bar.id.hashCode % 200);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: hasPromotion
-              ? const Color(0xFFEF4444).withOpacity(0.3)
-              : Colors.grey.shade200,
-          width: hasPromotion ? 2 : 1,
+          color: Colors.grey.shade200,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -218,67 +341,31 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
       ),
       child: Column(
         children: [
-          // Imagen y badge de promoción
+          // Imagen y badges
           Stack(
             children: [
+              // Imagen del bar
               Container(
                 height: 150,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.1),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
                   ),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.storefront,
-                    size: 64,
-                    color: const Color(0xFF6366F1).withOpacity(0.3),
-                  ),
-                ),
+                clipBehavior: Clip.hardEdge,
+                child: bar.photo != null && bar.photo!.isNotEmpty
+                    ? Image.network(
+                        ImageUrlHelper.getFullImageUrl(bar.photo),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return _buildImagePlaceholder();
+                        },
+                      )
+                    : _buildImagePlaceholder(),
               ),
-              if (hasPromotion)
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.local_offer,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          'Oferta',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              // Badge de estado
               Positioned(
                 top: 12,
                 left: 12,
@@ -288,7 +375,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: isOpen ? const Color(0xFF10B981) : Colors.grey,
+                    color: bar.isActive ? const Color(0xFF10B981) : Colors.grey,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -299,7 +386,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                     ],
                   ),
                   child: Text(
-                    isOpen ? 'Abierto' : 'Cerrado',
+                    bar.isActive ? 'Abierto' : 'Cerrado',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -322,7 +409,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        name,
+                        bar.nameBar,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -334,7 +421,11 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                       icon: const Icon(Icons.favorite_border),
                       color: Colors.grey.shade400,
                       iconSize: 24,
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Favoritos próximamente')),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -349,19 +440,13 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        address,
+                        bar.location,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
                         ),
-                      ),
-                    ),
-                    Text(
-                      distance,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade600,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -376,7 +461,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      rating.toString(),
+                      rating.toStringAsFixed(1),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -390,49 +475,15 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    const Spacer(),
-                    Text(
-                      price,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF10B981),
-                      ),
-                    ),
                   ],
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: tags
-                      .map(
-                        (tag) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF6366F1).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            tag,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF6366F1),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.push('/client/bars/${bar.id}');
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6366F1),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -454,6 +505,21 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 150,
+      width: double.infinity,
+      color: const Color(0xFF6366F1).withOpacity(0.1),
+      child: Center(
+        child: Icon(
+          Icons.storefront,
+          size: 64,
+          color: const Color(0xFF6366F1).withOpacity(0.3),
+        ),
       ),
     );
   }
