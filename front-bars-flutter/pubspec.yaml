@@ -64,6 +64,10 @@ dev_dependencies:
   riverpod_generator: ^2.3.9
   retrofit_generator: ^8.0.4
   json_serializable: ^6.7.1
+  
+  # App icon and splash screen
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.8
 
 flutter:
   uses-material-design: true
@@ -84,3 +88,23 @@ flutter:
   #         weight: 600
   #       - asset: fonts/Inter-Bold.ttf
   #         weight: 700
+
+# Configuración de flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#1e3a5f"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
+
+# Configuración de flutter_native_splash
+flutter_native_splash:
+  color: "#1e3a5f"
+  image: assets/images/app_icon.png
+  android: true
+  ios: true
+  android_12:
+    color: "#1e3a5f"
+    image: assets/images/app_icon.png
+
