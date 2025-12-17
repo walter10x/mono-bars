@@ -13,12 +13,14 @@ Aplicación móvil para descubrir bares, ver menús y promociones. Desarrollada 
 - 📍 **Lista de bares** con fotos, ubicación y valoraciones
 - 🍺 **Ver menús** completos con categorías y precios
 - 🎉 **Promociones** con descuentos y fechas de validez
+- ⭐ **Reseñas y Calificaciones** ver opiniones y calificar bares
 - ❤️ **Favoritos** (próximamente)
 
 ### Para Propietarios (Owners)
 - 🏪 **Gestionar bares** propios (CRUD)
 - 📋 **Crear menús** con categorías e items
 - 🎁 **Crear promociones** con fechas y descuentos
+- 💬 **Gestionar reseñas** ver y responder opiniones
 - 📸 **Subir fotos** de bares y promociones
 
 ## 🛠️ Tecnologías
@@ -68,6 +70,7 @@ lib/
 │   ├── bars/           # Gestión de bares
 │   ├── menus/          # Menús y categorías
 │   ├── promotions/     # Promociones
+│   ├── reviews/        # Sistema de reseñas
 │   ├── client/         # Pantallas cliente
 │   └── owner/          # Pantallas owner
 └── shared/             # Widgets reutilizables
@@ -107,6 +110,8 @@ flutter_native_splash:
 - [x] CRUD de bares para owners
 - [x] CRUD de menús para owners
 - [x] CRUD de promociones para owners
+- [x] **Sistema completo de reseñas y calificaciones**
+- [x] Respuestas de owners a reseñas
 - [x] Subida de fotos
 - [x] Ícono personalizado TourBar
 - [x] Splash screen personalizado

@@ -65,6 +65,10 @@ src/
 │   ├── promotion.schema.ts
 │   ├── promotions.controller.ts
 │   └── promotions.service.ts
+├── reviews/              # Gestión de reseñas
+│   ├── review.schema.ts
+│   ├── reviews.controller.ts
+│   └── reviews.service.ts
 └── uploads/              # Archivos subidos
 ```
 
@@ -127,6 +131,17 @@ src/
 | DELETE | `/promotions/:id` | Eliminar promoción |
 | POST | `/promotions/:id/photo` | Subir foto de promoción |
 
+### Reseñas (`/reviews`)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/reviews` | Crear reseña (auth) |
+| GET | `/reviews/bar/:barId` | Reseñas de un bar |
+| GET | `/reviews/bar/:barId/stats` | Estadísticas de reseñas |
+| GET | `/reviews/my-reviews` | Mis reseñas (auth) |
+| GET | `/reviews/my-bars` | Reseñas de mis bares (owner) |
+| POST | `/reviews/:id/response` | Responder reseña (owner) |
+
 ## 🔐 Roles y Permisos
 
 | Rol | Permisos |
@@ -155,6 +170,7 @@ npm run test:cov
 - ✅ Subida de fotos para bares y promociones
 - ✅ Sistema de roles (client/owner/admin)
 - ✅ Autenticación JWT con refresh tokens
+- ✅ Sistema de reseñas y calificación de bares
 
 ---
 
