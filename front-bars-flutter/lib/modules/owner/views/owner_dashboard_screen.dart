@@ -6,6 +6,8 @@ import '../../auth/controllers/auth_controller.dart';
 import '../../bars/controllers/bars_controller.dart';
 import '../../menus/controllers/menus_controller.dart';
 import '../../promotions/controllers/promotions_controller.dart';
+import '../../reviews/controllers/reviews_controller.dart';
+import 'owner_reviews_screen.dart';
 
 /// Pantalla principal del dashboard para propietarios de bares
 class OwnerDashboardScreen extends ConsumerStatefulWidget {
@@ -24,6 +26,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
       ref.read(barsControllerProvider.notifier).loadMyBars();
       ref.read(menusControllerProvider.notifier).loadMyMenus();
       ref.read(promotionsControllerProvider.notifier).loadMyPromotions();
+      ref.read(reviewsControllerProvider.notifier).loadMyBarsReviews();
     });
   }
 
@@ -33,6 +36,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
     final barsState = ref.watch(barsControllerProvider);
     final menusState = ref.watch(menusControllerProvider);
     final promotionsState = ref.watch(promotionsControllerProvider);
+    final reviewsState = ref.watch(reviewsControllerProvider);
 
     return Scaffold(
       body: Container(
@@ -110,15 +114,12 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
 
                 const SizedBox(height: 32),
 
-                // Estadísticas rápidas
+                // Estadísticas rápidas - Fila 1
                 Row(
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          // Navegar a gestión de bares
-                          context.go('/owner/bars');
-                        },
+                        onTap: () => context.go('/owner/bars'),
                         child: _buildStatCard(
                           icon: Icons.storefront,
                           title: 'Mis Bares',
@@ -130,10 +131,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          // Navegar a gestión de menús
-                          context.go('/owner/menus');
-                        },
+                        onTap: () => context.go('/owner/menus'),
                         child: _buildStatCard(
                           icon: Icons.restaurant_menu,
                           title: 'Menús',
@@ -147,14 +145,12 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
 
                 const SizedBox(height: 16),
 
+                // Fila 2
                 Row(
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          // Navegar a gestión de promociones
-                          context.go('/owner/promotions');
-                        },
+                        onTap: () => context.go('/owner/promotions'),
                         child: _buildStatCard(
                           icon: Icons.local_offer,
                           title: 'Promociones',
@@ -166,18 +162,36 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          context.go('/owner/reservations');
-                        },
+                        onTap: () => context.go('/owner/reservations'),
                         child: _buildStatCard(
                           icon: Icons.calendar_today,
                           title: 'Reservas',
-                          value: '0', // TODO: Implementar contador real
+                          value: '0',
                           color: const Color(0xFF8B5CF6),
                         ),
                       ),
                     ),
                   ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Fila 3 - Reseñas
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OwnerReviewsScreen(),
+                      ),
+                    );
+                  },
+                  child: _buildStatCard(
+                    icon: Icons.star,
+                    title: 'Reseñas',
+                    value: '${reviewsState.reviews.length}',
+                    color: const Color(0xFFEC4899),
+                  ),
                 ),
 
                 const SizedBox(height: 32),
