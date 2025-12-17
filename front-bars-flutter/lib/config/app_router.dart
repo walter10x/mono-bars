@@ -71,6 +71,7 @@ class AppRouter {
   static const String clientFavorites = '/client/favorites';
   static const String clientReservations = '/client/reservations';
   static const String clientReservationCreate = '/client/reservations/create';
+  static const String clientWriteReview = '/client/bars/:barId/review';
   
   // Rutas comunes
   static const String profile = '/profile';
