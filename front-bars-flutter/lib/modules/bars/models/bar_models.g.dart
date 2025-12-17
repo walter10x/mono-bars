@@ -76,6 +76,8 @@ Bar _$BarFromJson(Map<String, dynamic> json) => Bar(
           ? null
           : WeekHours.fromJson(json['hours'] as Map<String, dynamic>),
       isActive: json['isActive'] as bool? ?? true,
+      averageRating: (json['averageRating'] as num?)?.toDouble(),
+      totalReviews: (json['totalReviews'] as num?)?.toInt(),
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -95,6 +97,8 @@ Map<String, dynamic> _$BarToJson(Bar instance) => <String, dynamic>{
       'socialLinks': instance.socialLinks,
       'hours': instance.hours,
       'isActive': instance.isActive,
+      'averageRating': instance.averageRating,
+      'totalReviews': instance.totalReviews,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
     };

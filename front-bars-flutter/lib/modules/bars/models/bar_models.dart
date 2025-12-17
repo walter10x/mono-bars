@@ -134,6 +134,8 @@ class Bar extends Equatable {
   final SocialLinks? socialLinks;
   final WeekHours? hours;
   final bool isActive;
+  final double? averageRating;
+  final int? totalReviews;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -148,6 +150,8 @@ class Bar extends Equatable {
     this.socialLinks,
     this.hours,
     this.isActive = true,
+    this.averageRating,
+    this.totalReviews,
     this.createdAt,
     this.updatedAt,
   });
@@ -168,6 +172,8 @@ class Bar extends Equatable {
         socialLinks,
         hours,
         isActive,
+        averageRating,
+        totalReviews,
         createdAt,
         updatedAt,
       ];
@@ -183,6 +189,8 @@ class Bar extends Equatable {
     SocialLinks? socialLinks,
     WeekHours? hours,
     bool? isActive,
+    double? averageRating,
+    int? totalReviews,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -197,6 +205,8 @@ class Bar extends Equatable {
       socialLinks: socialLinks ?? this.socialLinks,
       hours: hours ?? this.hours,
       isActive: isActive ?? this.isActive,
+      averageRating: averageRating ?? this.averageRating,
+      totalReviews: totalReviews ?? this.totalReviews,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

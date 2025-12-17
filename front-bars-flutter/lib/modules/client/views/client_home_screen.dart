@@ -386,9 +386,9 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
     return Column(
       children: [
         ...barsToShow.map((bar) {
-          // Calcular rating simulado (por ahora)
-          final rating = 4.0 + (bar.id.hashCode % 10) / 10;
-          final reviews = 50 + (bar.id.hashCode % 200);
+          // Usar rating real del bar
+          final rating = bar.averageRating ?? 0.0;
+          final reviews = bar.totalReviews ?? 0;
           
           // Debug: imprimir foto del bar
           print('Bar: ${bar.nameBar}, Photo: ${bar.photo}');

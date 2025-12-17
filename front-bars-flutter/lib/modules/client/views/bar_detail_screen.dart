@@ -254,9 +254,9 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildBasicInfo(Bar bar) {
-    // Calcular rating simulado
-    final rating = 4.0 + (bar.id.hashCode % 10) / 10;
-    final reviews = 50 + (bar.id.hashCode % 200);
+    // Usar rating real del bar
+    final rating = bar.averageRating ?? 0.0;
+    final reviews = bar.totalReviews ?? 0;
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
