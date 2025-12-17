@@ -2,6 +2,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
+export type BarDocument = Bar & Document;
+
 @Schema({
   timestamps: true, // Agrega createdAt y updatedAt automáticamente
   toJSON: {
@@ -51,6 +53,12 @@ export class Bar extends Document {
     saturday?: { open: string; close: string };
     sunday?: { open: string; close: string };
   };
+
+  @Prop({ default: 0 })
+  averageRating: number;
+
+  @Prop({ default: 0 })
+  totalReviews: number;
 
   @Prop({ default: true })
   isActive: boolean;
