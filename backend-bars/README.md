@@ -1,98 +1,161 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TourBar Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST para la aplicación TourBar, desarrollada con NestJS y MongoDB. Gestiona bares, menús, promociones y usuarios.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Tecnologías
 
-## Description
+- **NestJS** - Framework Node.js
+- **MongoDB** - Base de datos NoSQL
+- **Mongoose** - ODM para MongoDB
+- **JWT** - Autenticación con tokens
+- **Passport** - Estrategias de autenticación
+- **Multer** - Subida de archivos/imágenes
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## 📦 Instalación
 
 ```bash
-$ yarn install
+# Instalar dependencias
+npm install
+
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus configuraciones
+
+# Ejecutar en desarrollo
+npm run start:dev
+
+# Ejecutar en producción
+npm run start:prod
 ```
 
-## Compile and run the project
+## 🔧 Variables de Entorno
+
+```env
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/tourbar
+JWT_SECRET=tu_secreto_jwt
+JWT_REFRESH_SECRET=tu_secreto_refresh
+```
+
+## 📁 Estructura del Proyecto
+
+```
+src/
+├── auth/                 # Módulo de autenticación
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── jwt.strategy.ts
+│   ├── jwt-auth.guard.ts
+│   └── roles.guard.ts
+├── users/                # Gestión de usuarios
+│   ├── user.schema.ts
+│   ├── users.controller.ts
+│   └── users.service.ts
+├── bars/                 # Gestión de bares
+│   └── bars/
+│       ├── bar.schema.ts
+│       ├── bars.controller.ts
+│       ├── bars.service.ts
+│       └── create-bar.dto.ts
+├── menus/                # Gestión de menús
+│   ├── menu.schema.ts
+│   ├── menus.controller.ts
+│   └── menus.service.ts
+├── promotions/           # Gestión de promociones
+│   ├── promotion.schema.ts
+│   ├── promotions.controller.ts
+│   └── promotions.service.ts
+└── uploads/              # Archivos subidos
+```
+
+## 🔌 API Endpoints
+
+### Autenticación (`/auth`)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/auth/login` | Iniciar sesión |
+| POST | `/auth/refresh` | Renovar token |
+| POST | `/auth/logout` | Cerrar sesión |
+| GET | `/auth/me` | Usuario actual |
+| GET | `/auth/verify` | Verificar token |
+
+### Usuarios (`/users`)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/users/register` | Registrar usuario |
+| GET | `/users` | Listar usuarios |
+| GET | `/users/:id` | Obtener usuario |
+| PUT | `/users/:id` | Actualizar usuario |
+| DELETE | `/users/:id` | Eliminar usuario |
+
+### Bares (`/bars`)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/bars` | Listar todos los bares |
+| GET | `/bars/search?q=` | **Buscar bares por nombre/ubicación** |
+| GET | `/bars/my-bars` | Bares del propietario (auth) |
+| GET | `/bars/:id` | Obtener bar por ID |
+| POST | `/bars` | Crear bar (auth: owner) |
+| PUT | `/bars/:id` | Actualizar bar (auth: owner) |
+| DELETE | `/bars/:id` | Eliminar bar (auth: owner) |
+| POST | `/bars/:id/photo` | Subir foto del bar |
+| DELETE | `/bars/:id/photo` | Eliminar foto del bar |
+
+### Menús (`/menus`)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/menus` | Listar menús |
+| GET | `/menus/bar/:barId` | Menús de un bar |
+| GET | `/menus/:id` | Obtener menú |
+| POST | `/menus` | Crear menú (auth: owner) |
+| PUT | `/menus/:id` | Actualizar menú |
+| DELETE | `/menus/:id` | Eliminar menú |
+
+### Promociones (`/promotions`)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/promotions` | Listar promociones |
+| GET | `/promotions/bar/:barId` | Promociones de un bar |
+| GET | `/promotions/:id` | Obtener promoción |
+| POST | `/promotions` | Crear promoción (auth: owner) |
+| PUT | `/promotions/:id` | Actualizar promoción |
+| DELETE | `/promotions/:id` | Eliminar promoción |
+| POST | `/promotions/:id/photo` | Subir foto de promoción |
+
+## 🔐 Roles y Permisos
+
+| Rol | Permisos |
+|-----|----------|
+| **client** | Ver bares, menús, promociones. Buscar. |
+| **owner** | Todo lo anterior + CRUD de sus propios bares |
+| **admin** | Acceso completo a todo el sistema |
+
+## 🧪 Testing
 
 ```bash
-# development
-$ yarn run start
+# Tests unitarios
+npm run test
 
-# watch mode
-$ yarn run start:dev
+# Tests e2e
+npm run test:e2e
 
-# production mode
-$ yarn run start:prod
+# Coverage
+npm run test:cov
 ```
 
-## Run tests
+## 📝 Características Recientes
 
-```bash
-# unit tests
-$ yarn run test
+- ✅ Búsqueda de bares por nombre, ubicación y descripción
+- ✅ Gestión de promociones con fechas de validez
+- ✅ Subida de fotos para bares y promociones
+- ✅ Sistema de roles (client/owner/admin)
+- ✅ Autenticación JWT con refresh tokens
 
-# e2e tests
-$ yarn run test:e2e
+---
 
-# test coverage
-$ yarn run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+**Desarrollado con ❤️ para TourBar**
