@@ -6,9 +6,10 @@ import { AppService } from './app.service';
 import { BarsModule } from './bars/bars/bars.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { MenusModule } from './menus/menus.module'; // <-- Importa el módulo menús
-import { PromotionsModule } from './promotions/promotions.module'; // <-- Importa el módulo promociones
-import { ReservationsModule } from './reservations/reservations.module'; // <-- Importa el módulo reservations
+import { MenusModule } from './menus/menus.module';
+import { PromotionsModule } from './promotions/promotions.module';
+import { ReservationsModule } from './reservations/reservations.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -20,9 +21,10 @@ import { ReservationsModule } from './reservations/reservations.module'; // <-- 
     BarsModule,
     UsersModule,
     AuthModule,
-    MenusModule, // <-- Agrega aquí
-    PromotionsModule, // <-- Agrega promociones
-    ReservationsModule, // <-- Agrega reservations
+    MenusModule,
+    PromotionsModule,
+    ReservationsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
