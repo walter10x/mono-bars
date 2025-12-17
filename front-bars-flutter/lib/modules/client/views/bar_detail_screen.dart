@@ -8,6 +8,9 @@ import 'package:front_bars_flutter/modules/menus/controllers/menus_controller.da
 import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
 import 'package:front_bars_flutter/modules/promotions/controllers/promotions_controller.dart';
 import 'package:front_bars_flutter/modules/promotions/models/promotion_simple_model.dart';
+import 'package:front_bars_flutter/modules/reviews/controllers/reviews_controller.dart';
+import 'package:front_bars_flutter/modules/reviews/views/reviews_widgets.dart';
+import 'package:front_bars_flutter/modules/reviews/views/write_review_screen.dart';
 
 /// Pantalla de detalle de un bar para clientes
 class BarDetailScreen extends ConsumerStatefulWidget {
@@ -29,7 +32,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     
     // DEBUG: Mostrar el barId que estamos usando
     print('╔════════════════════════════════════════╗');
@@ -48,6 +51,10 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
       
       print('🔵 Cargando promociones para bar: ${widget.barId}');
       ref.read(promotionsControllerProvider.notifier).loadPromotionsByBar(widget.barId);
+      
+      print('🔵 Cargando reseñas para bar: ${widget.barId}');
+      ref.read(reviewsControllerProvider.notifier).loadBarReviews(widget.barId);
+      ref.read(reviewsControllerProvider.notifier).loadBarStats(widget.barId);
     });
   }
 
@@ -62,10 +69,11 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
     final barsState = ref.watch(barsControllerProvider);
     final bar = barsState.selectedBar;
     
-    // IMPORTANTE: Escuchar cambios en menús y promociones para forzar rebuild
+    // IMPORTANTE: Escuchar cambios en menús, promociones y reseñas para forzar rebuild
     final menusState = ref.watch(menusControllerProvider);
     final promotionsState = ref.watch(promotionsControllerProvider);
-    print('🔄 BarDetailScreen.build() - Menus: ${menusState.menus.length}, Promotions: ${promotionsState.promotions.length}');
+    final reviewsState = ref.watch(reviewsControllerProvider);
+    print('🔄 BarDetailScreen.build() - Menus: ${menusState.menus.length}, Promotions: ${promotionsState.promotions.length}, Reviews: ${reviewsState.reviews.length}');
 
     // Estado de carga
     if (barsState.status == BarsStatus.loading || bar == null) {
@@ -413,7 +421,8 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
         tabs: const [
           Tab(text: 'Info'),
           Tab(text: 'Menú'),
-          Tab(text: 'Promociones'),
+          Tab(text: 'Ofertas'),
+          Tab(text: 'Reseñas'),
           Tab(text: 'Ubicación'),
         ],
       ),
@@ -428,13 +437,14 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
         print('🔄 _buildTabContent rebuilding - Menus: ${menusState.menus.length}');
         
         return SizedBox(
-          height: 400,
+          height: 500,
           child: TabBarView(
             controller: _tabController,
             children: [
               _buildInfoTab(bar),
               _buildMenuTab(bar),
               _buildPromotionsTab(bar),
+              _buildReviewsTab(bar),
               _buildLocationTab(bar),
             ],
           ),
@@ -961,6 +971,93 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildReviewsTab(Bar bar) {
+    final reviewsState = ref.watch(reviewsControllerProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Encabezado con botón de escribir reseña
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Reseñas (${reviewsState.reviews.length})',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1F2937),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WriteReviewScreen(
+                        barId: bar.id,
+                        barName: bar.nameBar,
+                      ),
+                    ),
+                  ).then((result) {
+                    if (result == true) {
+                      ref.read(reviewsControllerProvider.notifier).loadBarReviews(bar.id);
+                      ref.read(reviewsControllerProvider.notifier).loadBarStats(bar.id);
+                    }
+                  });
+                },
+                icon: const Icon(Icons.edit, size: 18),
+                label: const Text('Escribir'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6366F1),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Estadísticas de reseñas
+          if (reviewsState.stats != null)
+            ReviewStatsWidget(stats: reviewsState.stats!),
+
+          const SizedBox(height: 16),
+
+          // Estado de carga
+          if (reviewsState.isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+              ),
+            ),
+
+          // Error
+          if (reviewsState.hasError)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(
+                  reviewsState.errorMessage ?? 'Error al cargar reseñas',
+                  style: TextStyle(color: Colors.red.shade600),
+                ),
+              ),
+            ),
+
+          // Lista de reseñas
+          if (!reviewsState.isLoading && !reviewsState.hasError)
+            ReviewsListWidget(reviews: reviewsState.reviews),
+        ],
       ),
     );
   }
