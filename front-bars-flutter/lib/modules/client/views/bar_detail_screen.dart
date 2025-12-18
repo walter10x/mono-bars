@@ -123,6 +123,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0F0F1E),
       body: CustomScrollView(
         slivers: [
           // App Bar con imagen
@@ -159,15 +160,18 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildSliverAppBar(Bar bar) {
+    const primaryDark = Color(0xFF1A1A2E);
+    const accentAmber = Color(0xFFFFA500);
+    
     return SliverAppBar(
       expandedHeight: 300,
       pinned: true,
-      backgroundColor: const Color(0xFF6366F1),
+      backgroundColor: primaryDark,
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.5),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.arrow_back, color: Colors.white),
@@ -175,36 +179,36 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
         onPressed: () => context.pop(),
       ),
       actions: [
-        IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.favorite_border, color: Colors.white),
+      IconButton(
+        icon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5),
+            shape: BoxShape.circle,
           ),
-          onPressed: () {
-            // TODO: Agregar a favoritos
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Favoritos próximamente')),
-            );
-          },
+          child: Icon(Icons.favorite_border, color: accentAmber),
         ),
-        IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.share, color: Colors.white),
+        onPressed: () {
+          // TODO: Agregar a favoritos
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Favoritos próximamente')),
+          );
+        },
+      ),
+      IconButton(
+        icon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5),
+            shape: BoxShape.circle,
           ),
-          onPressed: () {
-            // TODO: Compartir
-          },
+          child: const Icon(Icons.share, color: Colors.white),
         ),
-      ],
+        onPressed: () {
+          // TODO: Compartir
+        },
+      ),
+    ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
@@ -241,13 +245,25 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildImagePlaceholder() {
+    const primaryDark = Color(0xFF1A1A2E);
+    const secondaryDark = Color(0xFF16213E);
+    
     return Container(
-      color: const Color(0xFF6366F1),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primaryDark,
+            secondaryDark,
+          ],
+        ),
+      ),
       child: Center(
         child: Icon(
           Icons.storefront,
           size: 100,
-          color: Colors.white.withOpacity(0.5),
+          color: Colors.white.withOpacity(0.3),
         ),
       ),
     );
@@ -257,6 +273,8 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
     // Usar rating real del bar
     final rating = bar.averageRating ?? 0.0;
     final reviews = bar.totalReviews ?? 0;
+
+    const accentAmber = Color(0xFFFFA500);
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -269,7 +287,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: Colors.white,
             ),
           ),
 
@@ -278,10 +296,10 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
           // Ubicación
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.location_on,
                 size: 20,
-                color: Color(0xFF6366F1),
+                color: accentAmber,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -289,7 +307,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                   bar.location,
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.grey.shade700,
+                    color: Colors.white.withOpacity(0.7),
                   ),
                 ),
               ),
@@ -302,37 +320,41 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
           Row(
             children: [
               // Rating
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: accentAmber.withOpacity(0.3),
+                  width: 1,
                 ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      size: 18,
-                      color: Color(0xFFF59E0B),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.star,
+                    size: 18,
+                    color: accentAmber,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      rating.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
+                  Text(
+                    rating.toStringAsFixed(1),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      '($reviews)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
+                  Text(
+                    '($reviews)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -342,16 +364,20 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               const SizedBox(width: 12),
 
               // Estado (simulado por ahora)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
                   color: bar.isActive
-                      ? const Color(0xFF10B981).withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                      ? const Color(0xFF10B981).withOpacity(0.5)
+                      : Colors.grey.withOpacity(0.3),
+                  width: 1,
+                ),
                 ),
                 child: Row(
                   children: [
@@ -380,10 +406,9 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               const Spacer(),
 
               // Teléfono si existe
-              if (bar.phone != null && bar.phone!.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.phone),
-                  color: const Color(0xFF6366F1),
+            if (bar.phone != null && bar.phone!.isNotEmpty)
+              IconButton(
+                icon: Icon(Icons.phone, color: accentAmber),
                   onPressed: () {
                     // TODO: Llamar
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -399,20 +424,22 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildTabs() {
+    const accentAmber = Color(0xFFFFA500);
+    
     return Container(
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Colors.grey.shade200,
+            color: Colors.white.withOpacity(0.1),
             width: 1,
           ),
         ),
       ),
       child: TabBar(
         controller: _tabController,
-        labelColor: const Color(0xFF6366F1),
-        unselectedLabelColor: Colors.grey.shade600,
-        indicatorColor: const Color(0xFF6366F1),
+        labelColor: accentAmber,
+        unselectedLabelColor: Colors.white.withOpacity(0.5),
+        indicatorColor: accentAmber,
         indicatorWeight: 3,
         labelStyle: const TextStyle(
           fontSize: 15,
@@ -465,7 +492,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 12),
@@ -473,7 +500,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             bar.description ?? 'Un excelente lugar para disfrutar.',
             style: TextStyle(
               fontSize: 15,
-              color: Colors.grey.shade700,
+              color: Colors.white.withOpacity(0.7),
               height: 1.5,
             ),
           ),
@@ -487,7 +514,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1F2937),
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 12),
@@ -505,7 +532,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1F2937),
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 12),
@@ -535,9 +562,9 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: Column(
         children: [
@@ -571,13 +598,14 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
+              color: Colors.white,
             ),
           ),
           Text(
             '${dayHours.open ?? '--'} - ${dayHours.close ?? '--'}',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade700,
+              color: Colors.white.withOpacity(0.6),
             ),
           ),
         ],
@@ -624,7 +652,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
         child: Padding(
           padding: EdgeInsets.all(32.0),
           child: CircularProgressIndicator(
-            color: Color(0xFF6366F1),
+            color: Color(0xFFFFA500),
           ),
         ),
       );
@@ -690,7 +718,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             Icon(
               Icons.restaurant_menu,
               size: 64,
-              color: Colors.grey.shade300,
+              color: Colors.white.withOpacity(0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -698,7 +726,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -706,7 +734,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               'Este bar aún no ha publicado su menú',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade500,
+                color: Colors.white.withOpacity(0.6),
               ),
               textAlign: TextAlign.center,
             ),
@@ -717,14 +745,17 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildMenuCard(Menu menu) {
+    const accentAmber = Color(0xFFFFA500);
+    const cardBackground = Color(0xFF1E1E2D);
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -744,25 +775,32 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    color: const Color(0xFF6366F1).withOpacity(0.1),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF1A1A2E),
+                          const Color(0xFF16213E),
+                        ],
+                      ),
+                    ),
                     child: Icon(
                       Icons.restaurant_menu,
                       size: 48,
-                      color: const Color(0xFF6366F1).withOpacity(0.5),
+                      color: Colors.white.withOpacity(0.3),
                     ),
                   );
                 },
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
-                    color: Colors.grey.shade100,
+                    color: cardBackground,
                     child: Center(
                       child: CircularProgressIndicator(
                         value: loadingProgress.expectedTotalBytes != null
                             ? loadingProgress.cumulativeBytesLoaded /
                                 loadingProgress.expectedTotalBytes!
                             : null,
-                        color: const Color(0xFF6366F1),
+                        color: accentAmber,
                       ),
                     ),
                   );
@@ -773,11 +811,18 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             Container(
               height: 120,
               width: double.infinity,
-              color: const Color(0xFF6366F1).withOpacity(0.1),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFF1A1A2E),
+                    const Color(0xFF16213E),
+                  ],
+                ),
+              ),
               child: Icon(
                 Icons.restaurant_menu,
                 size: 48,
-                color: const Color(0xFF6366F1).withOpacity(0.5),
+                color: Colors.white.withOpacity(0.3),
               ),
             ),
 
@@ -793,7 +838,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
+                    color: Colors.white,
                   ),
                 ),
 
@@ -805,7 +850,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                     menu.description!,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: Colors.white.withOpacity(0.6),
                       height: 1.4,
                     ),
                     maxLines: 2,
@@ -827,8 +872,8 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                     icon: const Icon(Icons.visibility, size: 18),
                     label: const Text('Ver Menú Completo'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF6366F1),
-                      side: const BorderSide(color: Color(0xFF6366F1)),
+                      foregroundColor: accentAmber,
+                      side: BorderSide(color: accentAmber),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -883,7 +928,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
         child: Padding(
           padding: EdgeInsets.all(32.0),
           child: CircularProgressIndicator(
-            color: Color(0xFF6366F1),
+            color: Color(0xFFFFA500),
           ),
         ),
       );
@@ -901,7 +946,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Colors.grey.shade300,
+                color: Colors.white.withOpacity(0.3),
               ),
               const SizedBox(height: 16),
               Text(
@@ -909,7 +954,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade600,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 8),
@@ -917,7 +962,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 promotionsState.error ?? 'Error desconocido',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade500,
+                  color: Colors.white.withOpacity(0.6),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -929,7 +974,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 icon: const Icon(Icons.refresh),
                 label: const Text('Reintentar'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
+                  backgroundColor: const Color(0xFFFFA500),
                 ),
               ),
             ],
@@ -949,15 +994,15 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             Icon(
               Icons.local_offer,
               size: 64,
-              color: Colors.grey.shade300,
+              color: Colors.white.withOpacity(0.3),
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin promociones activas',
+              'Sin ofertas disponibles',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -965,7 +1010,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               'Este bar no tiene promociones en este momento',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade500,
+                color: Colors.white.withOpacity(0.6),
               ),
               textAlign: TextAlign.center,
             ),
@@ -992,7 +1037,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+                  color: Colors.white,
                 ),
               ),
               ElevatedButton.icon(
@@ -1015,7 +1060,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 icon: const Icon(Icons.edit, size: 18),
                 label: const Text('Escribir'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
+                  backgroundColor: const Color(0xFFFFA500),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(
@@ -1038,7 +1083,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
-                child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+                child: CircularProgressIndicator(color: Color(0xFFFFA500)),
               ),
             ),
 
@@ -1049,7 +1094,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 padding: const EdgeInsets.all(32),
                 child: Text(
                   reviewsState.errorMessage ?? 'Error al cargar reseñas',
-                  style: TextStyle(color: Colors.red.shade600),
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
                 ),
               ),
             ),
@@ -1063,14 +1108,18 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildPromotionCard(PromotionSimple promotion) {
+    const accentAmber = Color(0xFFFFA500);
+    const accentGold = Color(0xFFFFB84D);
+    const cardBackground = Color(0xFF1E1E2D);
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1089,11 +1138,15 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    color: const Color(0xFFF59E0B).withOpacity(0.1),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [accentAmber, accentGold],
+                      ),
+                    ),
                     child: Icon(
                       Icons.local_offer,
                       size: 64,
-                      color: const Color(0xFFF59E0B).withOpacity(0.5),
+                      color: Colors.white.withOpacity(0.7),
                     ),
                   );
                 },
@@ -1108,8 +1161,8 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFFF59E0B).withOpacity(0.7),
-                    const Color(0xFFEF4444).withOpacity(0.7),
+                    accentAmber,
+                    accentGold,
                   ],
                 ),
               ),
@@ -1133,7 +1186,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEF4444),
+                    color: accentAmber,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -1154,7 +1207,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
+                    color: Colors.white,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -1168,7 +1221,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                     promotion.description!,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: Colors.white.withOpacity(0.7),
                       height: 1.4,
                     ),
                     maxLines: 2,
@@ -1180,14 +1233,14 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 // Fechas
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 16, color: Color(0xFF6B7280)),
+                    Icon(Icons.calendar_today, size: 16, color: accentAmber),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         'Válido hasta: ${_formatDate(promotion.validUntil)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF6B7280),
+                          color: Colors.white.withOpacity(0.6),
                         ),
                       ),
                     ),
@@ -1243,7 +1296,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
             children: [
               const Icon(
                 Icons.location_on,
-                color: Color(0xFF6366F1),
+                color: Color(0xFFFFA500),
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -1256,7 +1309,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1264,7 +1317,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                       bar.location,
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.grey.shade700,
+                        color: Colors.white.withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -1288,8 +1341,8 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
               icon: const Icon(Icons.map),
               label: const Text('Cómo llegar'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF6366F1),
-                side: const BorderSide(color: Color(0xFF6366F1)),
+                foregroundColor: const Color(0xFFFFA500),
+                side: const BorderSide(color: Color(0xFFFFA500)),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1304,7 +1357,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -1314,13 +1367,13 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                   Icon(
                     Icons.map,
                     size: 48,
-                    color: Colors.grey.shade400,
+                    color: Colors.white.withOpacity(0.3),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Mapa próximamente',
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: Colors.white.withOpacity(0.6),
                     ),
                   ),
                 ],
@@ -1333,53 +1386,69 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
   }
 
   Widget _buildReserveButton(Bar bar) {
+    const accentAmber = Color(0xFFFFA500);
+    const primaryDark = Color(0xFF1A1A2E);
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: primaryDark,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
         ],
       ),
       child: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              // Navegar al formulario de reserva con el bar preseleccionado
-              context.push(
-                '/client/reservations/create?barId=${bar.id}',
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: accentAmber.withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
-              elevation: 0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(
-                  Icons.event_seat,
-                  size: 24,
+            ],
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                // Navegar al formulario de reserva con el bar preseleccionado
+                context.push(
+                  '/client/reservations/create?barId=${bar.id}',
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accentAmber,
+                foregroundColor: primaryDark,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                SizedBox(width: 12),
-                Text(
-                  'RESERVAR MESA',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
+                elevation: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(
+                    Icons.event_seat,
+                    size: 24,
                   ),
-                ),
-              ],
+                  SizedBox(width: 12),
+                  Text(
+                    'RESERVAR MESA',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
