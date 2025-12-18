@@ -55,73 +55,102 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
     final user = ref.watch(currentUserProvider);
     final barsState = ref.watch(barsControllerProvider);
 
+    // Paleta de colores premium
+    const primaryDark = Color(0xFF1A1A2E);
+    const secondaryDark = Color(0xFF16213E);
+    const accentAmber = Color(0xFFFFA500);
+    const accentGold = Color(0xFFFFB84D);
+
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF6366F1),
-              Color(0xFF8B5CF6),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Padding(
+      backgroundColor: const Color(0xFF0F0F1E),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header premium con gradiente oscuro
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      primaryDark,
+                      secondaryDark,
+                      primaryDark.withOpacity(0.9),
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentAmber.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '¡Hola, ${user?.fullName ?? "Usuario"}!',
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [accentAmber, accentGold],
+                              ).createShader(bounds),
+                              child: Text(
+                                '¡Hola, ${user?.fullName ?? "Usuario"}!',
+                                style: const TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            '¿Qué te apetece hoy?',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
+                            const SizedBox(height: 4),
+                            Text(
+                              '¿Qué te apetece hoy?',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.7),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       GestureDetector(
                         onTap: () => context.push('/profile'),
                         child: Container(
-                          width: 50,
-                          height: 50,
+                          width: 48,
+                          height: 48,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
+                            gradient: const LinearGradient(
+                              colors: [accentAmber, accentGold],
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                                color: accentAmber.withOpacity(0.4),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
                           child: Center(
                             child: Text(
-                              user?.initials ?? 'U',
+                              user?.initials ?? 'W',
                               style: const TextStyle(
-                                fontSize: 20,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF6366F1),
+                                color: Color(0xFF1A1A2E),
                               ),
                             ),
                           ),
@@ -130,151 +159,162 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                     ],
                   ),
                 ),
+              ),
 
-                // Barra de búsqueda
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+              const SizedBox(height: 20),
+
+              // Barra de búsqueda oscura
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1,
                     ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _onSearchChanged,
-                      decoration: InputDecoration(
-                        hintText: 'Buscar por nombre, ciudad, dirección...',
-                        hintStyle: TextStyle(color: Colors.grey.shade400),
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: Color(0xFF6366F1),
-                        ),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear, color: Colors.grey),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _onSearchChanged('');
-                                },
-                              )
-                            : null,
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por nombre, ciudad, dirección...',
+                      hintStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: accentAmber,
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear, color: Colors.white.withOpacity(0.6)),
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
                       ),
                     ),
                   ),
                 ),
+              ),
 
                 const SizedBox(height: 24),
 
-                // Contenido principal
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+              const SizedBox(height: 24),
+              
+              // Promociones destacadas
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.local_fire_department, color: accentAmber, size: 24),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Promociones Destacadas',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 24),
-
-                      // Promociones destacadas
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '🔥 Promociones Destacadas',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F2937),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      SizedBox(
-                        height: 180,
-                        child: ListView(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _buildPromotionCard(
-                              title: '2x1 en Cócteles',
-                              description: 'Todos los jueves',
-                              discount: '50% OFF',
-                              color: const Color(0xFFEF4444),
-                            ),
-                            const SizedBox(width: 16),
-                            _buildPromotionCard(
-                              title: 'Happy Hour',
-                              description: 'De 18:00 a 20:00',
-                              discount: '30% OFF',
-                              color: const Color(0xFFF59E0B),
-                            ),
-                            const SizedBox(width: 16),
-                            _buildPromotionCard(
-                              title: 'Menú del Día',
-                              description: 'L-V hasta 16:00',
-                              discount: '€12.90',
-                              color: const Color(0xFF10B981),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Bares cercanos o resultados de búsqueda
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _isSearching ? '🔍 Resultados de búsqueda' : '📍 Bares Cerca de Ti',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F2937),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Contenido de bares - con estados de loading/error/datos
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: _buildBarsContent(barsState),
-                      ),
-
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 16),
+
+              SizedBox(
+                height: 180,
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _buildPromotionCard(
+                      title: '2x1 en Cócteles',
+                      description: 'Todos los jueves',
+                      discount: '50% OFF',
+                      color: accentAmber,
+                    ),
+                    const SizedBox(width: 16),
+                    _buildPromotionCard(
+                      title: 'Happy Hour',
+                      description: 'De 18:00 a 20:00',
+                      discount: '30% OFF',
+                      color: accentGold,
+                    ),
+                    const SizedBox(width: 16),
+                    _buildPromotionCard(
+                      title: 'Menú del Día',
+                      description: 'L-V hasta 16:00',
+                      discount: '€12.90',
+                      color: const Color(0xFF10B981),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Bares cercanos o resultados de búsqueda
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _isSearching ? Icons.search : Icons.location_on,
+                          color: accentAmber,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isSearching ? 'Resultados de búsqueda' : 'Bares Cerca de Ti',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Contenido de bares - con estados de loading/error/datos
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: _buildBarsContent(barsState),
+              ),
+
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),
@@ -514,6 +554,9 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
     required List<String> tags,
     String? photo,
   }) {
+    const accentAmber = Color(0xFFFFA500);
+    const cardBackground = Color(0xFF1E1E2D);
+    
     return GestureDetector(
       onTap: () {
         // Navegar al detalle del bar
@@ -521,12 +564,15 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardBackground,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withOpacity(0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -554,22 +600,22 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    const Color(0xFF6366F1),
-                                    const Color(0xFF8B5CF6),
+                                    const Color(0xFF1A1A2E),
+                                    const Color(0xFF16213E),
                                   ],
                                 ),
                               ),
                               child: Icon(
                                 Icons.storefront,
                                 size: 64,
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withOpacity(0.3),
                               ),
                             );
                           },
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Container(
-                              color: Colors.grey.shade100,
+                              color: cardBackground,
                               child: Center(
                                 child: CircularProgressIndicator(
                                   value: loadingProgress.expectedTotalBytes !=
@@ -577,7 +623,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                                       ? loadingProgress.cumulativeBytesLoaded /
                                           loadingProgress.expectedTotalBytes!
                                       : null,
-                                  color: const Color(0xFF6366F1),
+                                  color: accentAmber,
                                 ),
                               ),
                             );
@@ -589,15 +635,15 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                const Color(0xFF6366F1),
-                                const Color(0xFF8B5CF6),
+                                const Color(0xFF1A1A2E),
+                                const Color(0xFF16213E),
                               ],
                             ),
                           ),
                           child: Icon(
                             Icons.storefront,
                             size: 64,
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withOpacity(0.3),
                           ),
                         ),
                 ),
@@ -641,7 +687,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                         const Icon(
                           Icons.star,
                           size: 16,
-                          color: Color(0xFFF59E0B),
+                          color: accentAmber,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -694,7 +740,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
+                      color: Colors.white,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -708,7 +754,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                       Icon(
                         Icons.location_on,
                         size: 16,
-                        color: Colors.grey.shade600,
+                        color: accentAmber,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -716,7 +762,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                           address,
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey.shade600,
+                            color: Colors.white.withOpacity(0.6),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -732,7 +778,7 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                     '$reviews reseñas',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade500,
+                      color: Colors.white.withOpacity(0.5),
                     ),
                   ),
 
@@ -749,14 +795,18 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1).withOpacity(0.1),
+                          color: Colors.white.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: accentAmber.withOpacity(0.3),
+                            width: 1,
+                          ),
                         ),
                         child: Text(
                           tag,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF6366F1),
+                            color: accentAmber,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
