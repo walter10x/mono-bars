@@ -93,51 +93,197 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     });
 
+    // Paleta de colores premium - igual que login
+    const primaryDark = Color(0xFF1A1A2E);
+    const secondaryDark = Color(0xFF16213E);
+    const accentAmber = Color(0xFFFFA500);
+    const accentGold = Color(0xFFFFB84D);
+
     return LoadingOverlay(
       isLoading: isLoading,
       child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
+        backgroundColor: const Color(0xFF0F0F1E),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header Premium con gradiente oscuro elegante
+              Container(
+                height: 260,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      primaryDark,
+                      secondaryDark,
+                      primaryDark.withOpacity(0.9),
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(50),
+                    bottomRight: Radius.circular(50),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentAmber.withOpacity(0.1),
+                      blurRadius: 30,
+                      offset: const Offset(0, 15),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Stack(
+                    children: [
+                      // Botón de volver
+                      Positioned(
+                        left: 8,
+                        top: 8,
+                        child: IconButton(
+                          onPressed: () => context.go('/login'),
+                          icon: Icon(
+                            Icons.arrow_back,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                      ),
+                      // Contenido centrado
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 10),
+                            // Logo de la App más pequeño
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: accentAmber.withOpacity(0.3),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.asset(
+                                  'assets/images/app_icon.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            // Título con efecto dorado
+                            ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [accentAmber, accentGold],
+                              ).createShader(bounds),
+                              child: const Text(
+                                'Crear Cuenta',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Subtítulo simple sin overflow
+                            Text(
+                              'Únete a TourBar',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: accentGold,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
-                // Header con botón de volver
-                _buildHeader(),
+              // Formulario en Tarjeta Premium Oscura - superpuesto sobre header
+              Transform.translate(
+                offset: const Offset(0, -30),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E2D),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: accentAmber.withOpacity(0.2),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 30,
+                          offset: const Offset(0, 15),
+                        ),
+                        BoxShadow(
+                          color: accentAmber.withOpacity(0.05),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildRegisterForm(),
+                        
+                        const SizedBox(height: 14),
+                        
+                        _buildRoleSelector(),
+                        
+                        const SizedBox(height: 14),
+                        
+                        _buildTermsCheckbox(),
+                        
+                        const SizedBox(height: 16),
+                        
+                        _buildRegisterButton(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
-                const SizedBox(height: 40),
-
-                // Formulario de registro
-                _buildRegisterForm(),
-
-                const SizedBox(height: 24),
-
-                // Selector de tipo de cuenta
-                _buildRoleSelector(),
-
-                const SizedBox(height: 24),
-
-                // Términos y condiciones
-                _buildTermsCheckbox(),
-
-                const SizedBox(height: 24),
-
-                // Botón de registro
-                _buildRegisterButton(),
-
-                const SizedBox(height: 16),
-
-                // Divisor
-                _buildDivider(),
-
-                const SizedBox(height: 16),
-
-                // Botón de login
-                _buildLoginButton(),
-              ],
-            ),
+              // Link de Login
+              Padding(
+                padding: const EdgeInsets.only(bottom: 30),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '¿Ya tienes cuenta? ',
+                      style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    ),
+                    TextButton(
+                      onPressed: _handleLogin,
+                      child: const Text(
+                        'Inicia sesión',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: accentAmber,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -199,6 +345,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Widget _buildRegisterForm() {
+    const accentAmber = Color(0xFFFFA500);
+    
     return Form(
       key: _formKey,
       child: Column(
@@ -206,10 +354,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           // Nombre completo
           CustomTextField(
             controller: _nameController,
-            label: 'Nombre Completo',
-            hint: 'Tu nombre completo',
+            hint: 'Nombre completo',
             textInputAction: TextInputAction.next,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             prefixIcon: Icons.person_outline,
+            focusedBorderColor: accentAmber,
+            textStyle: const TextStyle(color: Colors.white, fontSize: 14),
+            fillColor: Colors.white.withOpacity(0.05),
+            borderColor: Colors.white.withOpacity(0.15),
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'El nombre es requerido';
@@ -221,16 +374,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Email
           CustomTextField(
             controller: _emailController,
-            label: 'Email',
-            hint: 'tu@email.com',
+            hint: 'Correo electrónico',
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             prefixIcon: Icons.email_outlined,
+            focusedBorderColor: accentAmber,
+            textStyle: const TextStyle(color: Colors.white, fontSize: 14),
+            fillColor: Colors.white.withOpacity(0.05),
+            borderColor: Colors.white.withOpacity(0.15),
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'El email es requerido';
@@ -242,19 +400,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Contraseña
           CustomTextField(
             controller: _passwordController,
-            label: 'Contraseña',
-            hint: 'Mínimo ${AppConstants.minPasswordLength} caracteres',
+            hint: 'Contraseña (mín. ${AppConstants.minPasswordLength} caracteres)',
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             obscureText: _obscurePassword,
             textInputAction: TextInputAction.next,
             prefixIcon: Icons.lock_outline,
+            focusedBorderColor: accentAmber,
+            textStyle: const TextStyle(color: Colors.white),
+            fillColor: Colors.white.withOpacity(0.05),
+            borderColor: Colors.white.withOpacity(0.15),
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: Colors.white.withOpacity(0.6),
               ),
               onPressed: () {
                 setState(() {
@@ -267,25 +431,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 return 'La contraseña es requerida';
               }
               if (value.length < AppConstants.minPasswordLength) {
-                return 'La contraseña debe tener al menos ${AppConstants.minPasswordLength} caracteres';
+                return 'Mínimo ${AppConstants.minPasswordLength} caracteres';
               }
               return null;
             },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Confirmar contraseña
           CustomTextField(
             controller: _confirmPasswordController,
-            label: 'Confirmar Contraseña',
-            hint: 'Repite tu contraseña',
+            hint: 'Confirmar contraseña',
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             obscureText: _obscureConfirmPassword,
             textInputAction: TextInputAction.done,
             prefixIcon: Icons.lock_outline,
+            focusedBorderColor: accentAmber,
+            textStyle: const TextStyle(color: Colors.white),
+            fillColor: Colors.white.withOpacity(0.05),
+            borderColor: Colors.white.withOpacity(0.15),
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: Colors.white.withOpacity(0.6),
               ),
               onPressed: () {
                 setState(() {
@@ -310,68 +480,115 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Widget _buildRoleSelector() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tipo de cuenta',
-              style: context.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Cliente
-            RadioListTile<String>(
-              value: 'client',
-              groupValue: _selectedRole,
-              onChanged: (value) {
-                setState(() {
-                  _selectedRole = value!;
-                });
-              },
-              title: const Text('Cliente'),
-              subtitle: const Text(
-                'Para explorar bares, ver menús y promociones',
-              ),
-              secondary: const Icon(Icons.person),
-            ),
-
-            // Propietario
-            RadioListTile<String>(
-              value: 'owner',
-              groupValue: _selectedRole,
-              onChanged: (value) {
-                setState(() {
-                  _selectedRole = value!;
-                });
-              },
-              title: const Text('Propietario de Bar'),
-              subtitle: const Text(
-                'Para gestionar tu bar, menús y promociones',
-              ),
-              secondary: const Icon(Icons.store),
-            ),
-          ],
+    const accentAmber = Color(0xFFFFA500);
+    
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tipo de cuenta',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Colors.white.withOpacity(0.9),
+            ),
+          ),
+          const SizedBox(height: 12),
+          
+          // Cliente
+          RadioListTile<String>(
+            value: 'client',
+            groupValue: _selectedRole,
+            activeColor: accentAmber,
+            contentPadding: EdgeInsets.zero,
+            onChanged: (value) {
+              setState(() {
+                _selectedRole = value!;
+              });
+            },
+            title: Text(
+              'Cliente',
+              style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14),
+            ),
+            subtitle: Text(
+              'Para explorar bares, ver menús y promociones',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 11,
+              ),
+            ),
+            secondary: Icon(
+              Icons.person,
+              color: _selectedRole == 'client' ? accentAmber : Colors.white.withOpacity(0.5),
+            ),
+          ),
+
+          const SizedBox(height: 4),
+
+          // Propietario
+          RadioListTile<String>(
+            value: 'owner',
+            groupValue: _selectedRole,
+            activeColor: accentAmber,
+            contentPadding: EdgeInsets.zero,
+            onChanged: (value) {
+              setState(() {
+                _selectedRole = value!;
+              });
+            },
+            title: Text(
+              'Propietario de Bar',
+              style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14),
+            ),
+            subtitle: Text(
+              'Para gestionar tu bar, menús y promociones',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 11,
+              ),
+            ),
+            secondary: Icon(
+              Icons.store,
+              color: _selectedRole == 'owner' ? accentAmber : Colors.white.withOpacity(0.5),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTermsCheckbox() {
+    const accentAmber = Color(0xFFFFA500);
+    
     return Row(
       children: [
-        Checkbox(
-          value: _acceptTerms,
-          onChanged: (value) {
-            setState(() {
-              _acceptTerms = value ?? false;
-            });
-          },
+        SizedBox(
+          height: 24,
+          width: 24,
+          child: Checkbox(
+            value: _acceptTerms,
+            activeColor: accentAmber,
+            checkColor: const Color(0xFF1A1A2E),
+            side: BorderSide(color: Colors.white.withOpacity(0.3)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            onChanged: (value) {
+              setState(() {
+                _acceptTerms = value ?? false;
+              });
+            },
+          ),
         ),
+        const SizedBox(width: 8),
         Expanded(
           child: GestureDetector(
             onTap: () {
@@ -382,11 +599,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Text.rich(
               TextSpan(
                 text: 'Acepto los ',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 13,
+                ),
                 children: [
                   TextSpan(
                     text: 'Términos y Condiciones',
                     style: TextStyle(
-                      color: Theme.of(context).primaryColor,
+                      color: accentAmber,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -394,13 +615,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   TextSpan(
                     text: 'Política de Privacidad',
                     style: TextStyle(
-                      color: Theme.of(context).primaryColor,
+                      color: accentAmber,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-              style: context.textTheme.bodyMedium,
             ),
           ),
         ),
@@ -409,35 +629,48 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Widget _buildRegisterButton() {
-    return CustomButton(
-      onPressed: _handleRegister,
-      text: 'Crear Cuenta',
-      isLoading: ref.watch(authLoadingProvider),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            '¿Ya tienes cuenta?',
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: context.colors.onSurface.withOpacity(0.6),
-            ),
+    const accentAmber = Color(0xFFFFA500);
+    
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: accentAmber.withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: _handleRegister,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accentAmber,
+          foregroundColor: const Color(0xFF1A1A2E),
+          minimumSize: const Size(double.infinity, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 0,
         ),
-        const Expanded(child: Divider()),
-      ],
-    );
-  }
-
-  Widget _buildLoginButton() {
-    return OutlinedButton(
-      onPressed: _handleLogin,
-      child: const Text('Iniciar Sesión'),
+        child: ref.watch(authLoadingProvider)
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1A1A2E)),
+                ),
+              )
+            : const Text(
+                'CREAR CUENTA',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+      ),
     );
   }
 }

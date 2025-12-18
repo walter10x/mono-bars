@@ -93,128 +93,266 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
+    // Paleta de colores premium - Oscura y elegante para app de bares
+    const primaryDark = Color(0xFF1A1A2E); // Azul oscuro casi negro
+    const secondaryDark = Color(0xFF16213E); // Azul profundo
+    const accentAmber = Color(0xFFFFA500); // Amber/Naranja cálido
+    const accentGold = Color(0xFFFFB84D); // Dorado suave
+
     return LoadingOverlay(
       isLoading: isLoading,
       child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 60),
-                
-                // Logo y título
-                _buildHeader(),
-                
-                const SizedBox(height: 60),
-                
-                // Formulario de login
-                _buildLoginForm(),
-                
-                const SizedBox(height: 24),
-                
-                // Botón de login
-                _buildLoginButton(),
-                
-                const SizedBox(height: 16),
-                
-                // ¿Olvidaste tu contraseña?
-                _buildForgotPasswordButton(),
-                
-                const SizedBox(height: 32),
-                
-                // Divisor
-                _buildDivider(),
-                
-                const SizedBox(height: 32),
-                
-                // Botón de registro
-                _buildRegisterButton(),
-              ],
-            ),
+        backgroundColor: const Color(0xFF0F0F1E), // Fondo muy oscuro
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header Premium con gradiente oscuro elegante
+              Container(
+                height: 380,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      primaryDark,
+                      secondaryDark,
+                      primaryDark.withOpacity(0.9),
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(50),
+                    bottomRight: Radius.circular(50),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentAmber.withOpacity(0.1),
+                      blurRadius: 30,
+                      offset: const Offset(0, 15),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 20),
+                      // Logo profesional sin bordes
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentAmber.withOpacity(0.3),
+                              blurRadius: 25,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(28),
+                          child: Image.asset(
+                            'assets/images/app_icon.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Título con efecto dorado
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [accentAmber, accentGold],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'TourBar',
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Subtítulo con diseño mejorado
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: accentGold.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          'Tu guía para la mejor experiencia',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: accentGold,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1,
+                            height: 1.2,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Formulario en Tarjeta Premium Oscura
+              Transform.translate(
+                offset: const Offset(0, -30),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Container(
+                    padding: const EdgeInsets.all(22),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E2D),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: accentAmber.withOpacity(0.2),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 30,
+                          offset: const Offset(0, 15),
+                        ),
+                        BoxShadow(
+                          color: accentAmber.withOpacity(0.05),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Bienvenido',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white.withOpacity(0.95),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Inicia sesión para continuar',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: accentGold.withOpacity(0.7),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        
+                        _buildLoginForm(),
+                        
+                        const SizedBox(height: 20),
+                        
+                        _buildLoginButton(),
+                        
+                        const SizedBox(height: 14),
+                        
+                        _buildForgotPasswordButton(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Registro
+              Padding(
+                padding: const EdgeInsets.only(bottom: 30),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '¿No tienes cuenta? ',
+                      style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    ),
+                    TextButton(
+                      onPressed: _handleRegister,
+                      child: const Text(
+                        'Regístrate aquí',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: accentAmber,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        // Logo (puedes agregar tu logo aquí)
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Icon(
-            Icons.local_bar,
-            color: Colors.white,
-            size: 40,
-          ),
-        ),
-        
-        const SizedBox(height: 24),
-        
-        Text(
-          'Bienvenido',
-          style: context.textTheme.headlineLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        
-        const SizedBox(height: 8),
-        
-        Text(
-          'Inicia sesión para continuar',
-          style: context.textTheme.bodyLarge?.copyWith(
-            color: context.colors.onSurface.withOpacity(0.6),
-          ),
-        ),
-      ],
-    );
-  }
+  // Eliminamos _buildHeader antiguo ya que ahora está integrado en el build principal
 
   Widget _buildLoginForm() {
+    const accentAmber = Color(0xFFFFA500);
+    
     return Form(
       key: _formKey,
       child: Column(
         children: [
-          // Campo de email
           CustomTextField(
             controller: _emailController,
-            label: 'Email',
-            hint: 'Ingresa tu email',
+            hint: 'Correo electrónico',
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
-            prefixIcon: Icons.email_outlined,
+            prefixIcon: Icons.email_rounded,
+            focusedBorderColor: accentAmber,
+            textStyle: const TextStyle(
+              color: Colors.white,
+            ),
+            fillColor: Colors.white.withOpacity(0.05),
+            borderColor: Colors.white.withOpacity(0.15),
+            hintStyle: TextStyle(
+              color: Colors.white.withOpacity(0.4),
+            ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'El email es requerido';
-              }
-              if (!value.isValidEmail) {
-                return 'Ingresa un email válido';
-              }
+              if (value == null || value.isEmpty) return 'El email es requerido';
+              if (!value.isValidEmail) return 'Ingresa un email válido';
               return null;
             },
           ),
-          
-          const SizedBox(height: 16),
-          
-          // Campo de contraseña
+          const SizedBox(height: 14),
           CustomTextField(
             controller: _passwordController,
-            label: 'Contraseña',
-            hint: 'Ingresa tu contraseña',
+            hint: 'Contraseña',
             obscureText: _obscurePassword,
             textInputAction: TextInputAction.done,
-            prefixIcon: Icons.lock_outline,
+            prefixIcon: Icons.lock_rounded,
+            focusedBorderColor: accentAmber,
+            textStyle: const TextStyle(
+              color: Colors.white,
+            ),
+            fillColor: Colors.white.withOpacity(0.05),
+            borderColor: Colors.white.withOpacity(0.15),
+            hintStyle: TextStyle(
+              color: Colors.white.withOpacity(0.4),
+            ),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: Colors.white.withOpacity(0.6),
               ),
               onPressed: () {
                 setState(() {
@@ -223,33 +361,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               },
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'La contraseña es requerida';
-              }
+              if (value == null || value.isEmpty) return 'La contraseña es requerida';
               if (value.length < AppConstants.minPasswordLength) {
-                return 'La contraseña debe tener al menos ${AppConstants.minPasswordLength} caracteres';
+                return 'Mínimo ${AppConstants.minPasswordLength} caracteres';
               }
               return null;
             },
             onFieldSubmitted: (_) => _handleLogin(),
           ),
-          
-          const SizedBox(height: 16),
-          
-          // Recordarme
+          const SizedBox(height: 10),
+          // Recordarme alineado a la izquierda
           Row(
             children: [
-              Checkbox(
-                value: _rememberMe,
-                onChanged: (value) {
-                  setState(() {
-                    _rememberMe = value ?? false;
-                  });
-                },
+              SizedBox(
+                height: 24,
+                width: 24,
+                child: Checkbox(
+                  value: _rememberMe,
+                  activeColor: const Color(0xFFFFA500),
+                  checkColor: const Color(0xFF1A1A2E),
+                  side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                  onChanged: (value) {
+                    setState(() {
+                      _rememberMe = value ?? false;
+                    });
+                  },
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 'Recordarme',
-                style: context.textTheme.bodyMedium,
+                style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
               ),
             ],
           ),
@@ -259,44 +402,67 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildLoginButton() {
-    return CustomButton(
-      onPressed: _handleLogin,
-      text: 'Iniciar Sesión',
-      isLoading: ref.watch(authLoadingProvider),
+    const accentAmber = Color(0xFFFFA500);
+    
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: accentAmber.withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: _handleLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accentAmber,
+          foregroundColor: const Color(0xFF1A1A2E),
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 0,
+        ),
+        child: ref.watch(authLoadingProvider)
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1A1A2E)),
+                ),
+              )
+            : const Text(
+                'INICIAR SESIÓN',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+      ),
     );
   }
 
   Widget _buildForgotPasswordButton() {
-    return TextButton(
-      onPressed: _handleForgotPassword,
-      child: const Text('¿Olvidaste tu contraseña?'),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'O',
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: context.colors.onSurface.withOpacity(0.6),
-            ),
-          ),
+    return Center(
+      child: TextButton(
+        onPressed: _handleForgotPassword,
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFFFFB84D),
         ),
-        const Expanded(child: Divider()),
-      ],
+        child: const Text(
+          '¿Olvidaste tu contraseña?',
+          style: TextStyle(fontSize: 14),
+        ),
+      ),
     );
   }
 
-  Widget _buildRegisterButton() {
-    return OutlinedButton(
-      onPressed: _handleRegister,
-      child: const Text('Crear Cuenta Nueva'),
-    );
-  }
+  // Eliminamos _buildDivider y _buildRegisterButton antiguos ya que se integraron de otra forma
 }
 
 /// Clase para validar email usando Formz
