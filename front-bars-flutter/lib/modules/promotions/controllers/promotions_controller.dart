@@ -269,3 +269,34 @@ class PromotionsController extends _$PromotionsController {
     }
   }
 }
+
+// Provider separado para "todas las promociones activas" 
+// Esto evita conflictos cuando otras pantallas cargan promociones de un bar específico
+@riverpod
+class AllActivePromotionsController extends _$AllActivePromotionsController {
+  @override
+  PromotionsState build() {
+    // Cargar automáticamente al crear el provider
+    Future.microtask(() => loadPromotions());
+    return const PromotionsState();
+  }
+
+  Future<void> loadPromotions() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final service = ref.read(promotionsServiceProvider);
+      final allPromotions = await service.getAllActivePromotions();
+
+      state = state.copyWith(
+        promotions: allPromotions,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+}
