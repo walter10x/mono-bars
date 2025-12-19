@@ -90,6 +90,59 @@ export class PromotionsService {
       .exec();
   }
 
+  async findAllActive(): Promise<any[]> {
+    this.logger.log('Buscando todas las promociones activas');
+    
+    const now = new Date();
+    
+    return this.promotionModel
+      .aggregate([
+        {
+          $match: {
+            isActive: true,
+            validUntil: { $gt: now },
+          },
+        },
+        {
+          $lookup: {
+            from: 'bars',
+            localField: 'barId',
+            foreignField: '_id',
+            as: 'bar',
+          },
+        },
+        {
+          $unwind: '$bar',
+        },
+        {
+          $sort: {
+            validUntil: 1, // Ordenar por expiración (más pronto primero)
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: { $toString: '$_id' },
+            title: 1,
+            description: 1,
+            type: { $literal: 'discount' },
+            barId: { $toString: '$barId' },
+            barName: '$bar.name',
+            barLogo: '$bar.logo',
+            discountPercentage: 1,
+            validFrom: 1,
+            validUntil: 1,
+            isActive: 1,
+            photoUrl: 1,
+            termsAndConditions: 1,
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        },
+      ])
+      .exec();
+  }
+
   async findOne(id: string): Promise<Promotion> {
     const promotion = await this.promotionModel.findById(id).exec();
     if (!promotion) {

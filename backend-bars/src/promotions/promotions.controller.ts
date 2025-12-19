@@ -92,6 +92,12 @@ export class PromotionsController {
     return { message: 'Foto de la promoción eliminada correctamente' };
   }
 
+  @Get('all-active')
+  async findAllActive() {
+    this.logger.log('Obteniendo todas las promociones activas');
+    return this.promotionsService.findAllActive();
+  }
+
   @Get()
   async findAll() {
     return this.promotionsService.findAll();
