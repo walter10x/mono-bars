@@ -15,7 +15,7 @@ class MenuPreviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFF0F0F1E),
       body: CustomScrollView(
         slivers: [
           // App Bar con foto del menú
@@ -47,12 +47,12 @@ class MenuPreviewScreen extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
-      backgroundColor: const Color(0xFF6366F1),
+      backgroundColor: const Color(0xFF1A1A2E),
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.5),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.arrow_back, color: Colors.white),
@@ -96,12 +96,21 @@ class MenuPreviewScreen extends StatelessWidget {
 
   Widget _buildImagePlaceholder() {
     return Container(
-      color: const Color(0xFF6366F1),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1A1A2E),
+            Color(0xFF16213E),
+          ],
+        ),
+      ),
       child: Center(
         child: Icon(
           Icons.restaurant_menu,
           size: 80,
-          color: Colors.white.withOpacity(0.5),
+          color: Colors.white.withOpacity(0.3),
         ),
       ),
     );
@@ -119,7 +128,7 @@ class MenuPreviewScreen extends StatelessWidget {
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: Colors.white,
             ),
           ),
 
@@ -131,7 +140,7 @@ class MenuPreviewScreen extends StatelessWidget {
               menu.description!,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade600,
+                color: Colors.white.withOpacity(0.7),
                 height: 1.5,
               ),
             ),
@@ -150,14 +159,14 @@ class MenuPreviewScreen extends StatelessWidget {
               Icon(
                 Icons.info_outline,
                 size: 48,
-                color: Colors.grey.shade400,
+                color: Colors.white.withOpacity(0.3),
               ),
               const SizedBox(height: 16),
               Text(
                 'Este menú aún no tiene items',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey.shade600,
+                  color: Colors.white.withOpacity(0.6),
                 ),
               ),
             ],
@@ -176,7 +185,7 @@ class MenuPreviewScreen extends StatelessWidget {
             children: [
               const Icon(
                 Icons.restaurant,
-                color: Color(0xFF6366F1),
+                color: Color(0xFFFFA500),
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -185,7 +194,7 @@ class MenuPreviewScreen extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF6366F1),
+                  color: Color(0xFFFFA500),
                   letterSpacing: 1.2,
                 ),
               ),
@@ -213,12 +222,12 @@ class MenuPreviewScreen extends StatelessWidget {
   Widget _buildMenuItem(MenuItem item) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1E1E2D),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -257,7 +266,7 @@ class MenuPreviewScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+                      color: Colors.white,
                     ),
                   ),
 
@@ -268,7 +277,7 @@ class MenuPreviewScreen extends StatelessWidget {
                       item.description!,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: Colors.white.withOpacity(0.6),
                         height: 1.4,
                       ),
                     ),
@@ -284,15 +293,19 @@ class MenuPreviewScreen extends StatelessWidget {
                 vertical: 6,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.1),
+                color: const Color(0xFFFFA500).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFFFFA500).withOpacity(0.3),
+                  width: 1,
+                ),
               ),
               child: Text(
                 '\$${item.price.toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF10B981),
+                  color: Color(0xFFFFA500),
                 ),
               ),
             ),
