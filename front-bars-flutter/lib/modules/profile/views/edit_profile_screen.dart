@@ -57,9 +57,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       final state = ref.read(profileControllerProvider);
       
       if (!state.isUpdating && state.errorMessage == null) {
-        // Éxito
+        // Éxito - usar go en lugar de pop para recargar la pantalla
         context.showSuccessSnackBar('Perfil actualizado correctamente');
-        context.pop();
+        context.go('/profile'); // Esto fuerza la recarga de la pantalla
       } else if (state.errorMessage != null) {
         // Error
         context.showErrorSnackBar(state.errorMessage!);
