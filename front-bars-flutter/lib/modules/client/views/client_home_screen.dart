@@ -6,6 +6,8 @@ import 'dart:async';
 import '../../auth/controllers/auth_controller.dart';
 import '../../bars/controllers/bars_controller.dart';
 import '../../favorites/controllers/favorites_controller.dart';
+import '../../promotions/controllers/promotions_controller.dart';
+import '../../promotions/models/promotion_simple_model.dart';
 import '../../../core/utils/image_url_helper.dart';
 
 /// Pantalla principal para clientes
@@ -20,14 +22,32 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   bool _isSearching = false;
+  List<PromotionSimple> _featuredPromotions = [];
+  bool _isLoadingPromotions = true;
 
   @override
   void initState() {
     super.initState();
-    // Cargar bares cuando se inicializa la pantalla
+    // Cargar bares y promociones cuando se inicializa la pantalla
     Future.microtask(() {
       ref.read(barsControllerProvider.notifier).loadAllBars();
+      _loadFeaturedPromotions();
     });
+  }
+
+  Future<void> _loadFeaturedPromotions() async {
+    setState(() {
+      _isLoadingPromotions = true;
+    });
+
+    final promotions = await ref.read(promotionsControllerProvider.notifier).loadFeaturedPromotions();
+    
+    if (mounted) {
+      setState(() {
+        _featuredPromotions = promotions;
+        _isLoadingPromotions = false;
+      });
+    }
   }
 
   @override
@@ -246,35 +266,43 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
 
               const SizedBox(height: 16),
 
-              SizedBox(
-                height: 180,
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _buildPromotionCard(
-                      title: '2x1 en Cócteles',
-                      description: 'Todos los jueves',
-                      discount: '50% OFF',
-                      color: accentAmber,
+              // Loading or Promotions List
+              if (_isLoadingPromotions)
+                const SizedBox(
+                  height: 180,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFFFFA500),
                     ),
-                    const SizedBox(width: 16),
-                    _buildPromotionCard(
-                      title: 'Happy Hour',
-                      description: 'De 18:00 a 20:00',
-                      discount: '30% OFF',
-                      color: accentGold,
+                  ),
+                )
+              else if (_featuredPromotions.isEmpty)
+                 const SizedBox(
+                  height: 180,
+                  child: Center(
+                    child: Text(
+                      'No hay promociones destacadas',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white54,
+                      ),
                     ),
-                    const SizedBox(width: 16),
-                    _buildPromotionCard(
-                      title: 'Menú del Día',
-                      description: 'L-V hasta 16:00',
-                      discount: '€12.90',
-                      color: const Color(0xFF10B981),
-                    ),
-                  ],
+                  ),
+                )
+              else
+                SizedBox(
+                  height: 180,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _featuredPromotions.length,
+                    separatorBuilder: (context, index) => const SizedBox(width: 16),
+                    itemBuilder: (context, index) {
+                      final promotion = _featuredPromotions[index];
+                      return _buildFeaturedPromotionCard(promotion);
+                    },
+                  ),
                 ),
-              ),
 
               const SizedBox(height: 32),
 
@@ -542,6 +570,171 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturedPromotionCard(PromotionSimple promotion) {
+    const accentAmber = Color(0xFFFFA500);
+    const accentGold = Color(0xFFFFB84D);
+    
+    // Generate color based on promotion title hash
+    final colors = [accentAmber, accentGold, const Color(0xFF10B981), const Color(0xFF8B5CF6)];
+    final color = colors[promotion.title.hashCode.abs() % colors.length];
+
+    return GestureDetector(
+      onTap: () {
+        context.push('/client/promotion/${promotion.id}', extra: promotion);
+      },
+      child: Container(
+        width: 280,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          children: [
+            // Background: Photo or Gradient
+            if (promotion.photoUrl != null && promotion.photoUrl!.isNotEmpty)
+              // Photo with dark overlay
+              Stack(
+                children: [
+                  // Photo
+                  Image.network(
+                    ImageUrlHelper.getFullImageUrl(promotion.photoUrl!),
+                    width: 280,
+                    height: 180,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback to gradient if image fails
+                      return Container(
+                        width: 280,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [color, color.withOpacity(0.7)],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Dark overlay for readability
+                  Container(
+                    width: 280,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.3),
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              // Gradient fallback
+              Container(
+                width: 280,
+                height: 180,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color, color.withOpacity(0.7)],
+                  ),
+                ),
+              ),
+
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Title and bar name
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        promotion.title,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (promotion.barName != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          promotion.barName!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+
+                  // Discount and arrow
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (promotion.discountPercentage != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${promotion.discountPercentage!.toStringAsFixed(0)}% OFF',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: color,
+                            ),
+                          ),
+                        ),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
