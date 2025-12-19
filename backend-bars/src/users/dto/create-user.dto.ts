@@ -13,6 +13,12 @@ export class CreateUserDto {
   name: string;
 
   @IsOptional()
+  @IsString()
+  @MinLength(9, { message: 'El teléfono debe tener al menos 9 dígitos' })
+  @MaxLength(15, { message: 'El teléfono no puede tener más de 15 dígitos' })
+  phone?: string;
+
+  @IsOptional()
   @IsIn(['owner', 'client', 'admin'], {
     message: 'Role debe ser uno de los siguientes valores: owner, client, admin',
   })
