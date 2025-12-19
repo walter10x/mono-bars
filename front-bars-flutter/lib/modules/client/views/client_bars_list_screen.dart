@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
 import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
+import 'package:front_bars_flutter/modules/favorites/controllers/favorites_controller.dart';
 import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
 
 /// Pantalla de lista de bares para clientes con búsqueda
@@ -417,13 +418,20 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.favorite_border),
-                      color: Colors.grey.shade400,
-                      iconSize: 24,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Favoritos próximamente')),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final favoritesController = ref.watch(favoritesControllerProvider.notifier);
+                        final isFavorite = ref.watch(favoritesControllerProvider).isFavorite(bar.id);
+                        
+                        return IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                          ),
+                          color: isFavorite ? Colors.red : Colors.grey.shade400,
+                          iconSize: 24,
+                          onPressed: () {
+                            favoritesController.toggleFavorite(bar.id);
+                          },
                         );
                       },
                     ),

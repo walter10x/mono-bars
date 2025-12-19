@@ -1,404 +1,381 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../favorites/controllers/favorites_controller.dart';
+import '../../bars/controllers/bars_controller.dart';
+import '../../../core/utils/image_url_helper.dart';
 
 /// Pantalla de favoritos para clientes
-class ClientFavoritesScreen extends ConsumerWidget {
+class ClientFavoritesScreen extends ConsumerStatefulWidget {
   const ClientFavoritesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: Implementar provider para manejar favoritos
-    final hasFavorites = true; // Simular que hay favoritos
+  ConsumerState<ClientFavoritesScreen> createState() => _ClientFavoritesScreenState();
+}
+
+class _ClientFavoritesScreenState extends ConsumerState<ClientFavoritesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar todos los bares para poder filtrar los favoritos
+    Future.microtask(() {
+      ref.read(barsControllerProvider.notifier).loadAllBars();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const primaryDark = Color(0xFF0F0F1E);
+    const cardBackground = Color(0xFF1E1E2D);
+    const accentAmber = Color(0xFFFFA500);
+    
+    final favoritesState = ref.watch(favoritesControllerProvider);
+    final barsState = ref.watch(barsControllerProvider);
+    
+    // Filtrar solo los bares que están en favoritos
+    final favoriteBars = barsState.bars
+        .where((bar) => favoritesState.favoriteBarIds.contains(bar.id))
+        .toList();
+    
+    final hasFavorites = favoriteBars.isNotEmpty;
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF6366F1),
-              Color(0xFF8B5CF6),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Mis Favoritos',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+      backgroundColor: primaryDark,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.favorite,
+                        color: accentAmber,
+                        size: 32,
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Tus lugares y promociones guardados',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Contenido
-              Expanded(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-                  child: hasFavorites
-                      ? ListView(
-                          padding: const EdgeInsets.all(24.0),
-                          children: [
-                            // Bares favoritos
-                            const Text(
-                              '❤️ Bares Favoritos',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F2937),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildFavoriteBarCard(
-                              name: 'El Rincón del Jazz',
-                              address: 'Calle Mayor 45, Madrid',
-                              rating: 4.5,
-                              reviews: 128,
-                              visitCount: 5,
-                            ),
-                            const SizedBox(height: 12),
-                            _buildFavoriteBarCard(
-                              name: 'Bar Central',
-                              address: 'Plaza del Sol 3, Madrid',
-                              rating: 4.7,
-                              reviews: 256,
-                              visitCount: 12,
-                            ),
-
-                            const SizedBox(height: 32),
-
-                            // Promociones guardadas
-                            const Text(
-                              '🔖 Promociones Guardadas',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F2937),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildFavoritePromotionCard(
-                              title: '2x1 en Cócteles',
-                              barName: 'El Rincón del Jazz',
-                              discount: '50% OFF',
-                              validUntil: 'Válido hasta el 31 Dic',
-                              color: const Color(0xFFEF4444),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildFavoritePromotionCard(
-                              title: 'Happy Hour',
-                              barName: 'La Taberna Moderna',
-                              discount: '30% OFF',
-                              validUntil: 'Promoción permanente',
-                              color: const Color(0xFFF59E0B),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildFavoritePromotionCard(
-                              title: 'Menú del Día',
-                              barName: 'Bar Central',
-                              discount: '€12.90',
-                              validUntil: 'L-V hasta 16:00',
-                              color: const Color(0xFF10B981),
-                            ),
-                          ],
-                        )
-                      : _buildEmptyState(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFavoriteBarCard({
-    required String name,
-    required String address,
-    required double rating,
-    required int reviews,
-    required int visitCount,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Imagen
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.local_bar,
-              size: 35,
-              color: const Color(0xFF6366F1).withOpacity(0.5),
-            ),
-          ),
-
-          const SizedBox(width: 16),
-
-          // Información
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 14,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        address,
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Mis Favoritos',
                         style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      size: 16,
-                      color: Color(0xFFF59E0B),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      rating.toString(),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '($reviews)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '$visitCount visitas',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF6366F1),
-                          fontWeight: FontWeight.w600,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    hasFavorites 
+                        ? '${favoriteBars.length} ${favoriteBars.length == 1 ? 'bar guardado' : 'bares guardados'}'
+                        : 'Aún no tienes bares guardados',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white.withOpacity(0.6),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Botón eliminar
-          IconButton(
-            icon: const Icon(Icons.favorite),
-            color: const Color(0xFFEF4444),
-            onPressed: () {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFavoritePromotionCard({
-    required String title,
-    required String barName,
-    required String discount,
-    required String validUntil,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Icono de promoción
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  color,
-                  color.withOpacity(0.8),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.local_offer,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
 
-          const SizedBox(width: 16),
-
-          // Información
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  barName,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 14,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      validUntil,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
+            // Contenido
+            Expanded(
+              child: barsState.status == BarsStatus.loading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: accentAmber,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    )
+                  : hasFavorites
+                      ? ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          itemCount: favoriteBars.length,
+                          itemBuilder: (context, index) {
+                            final bar = favoriteBars[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildFavoriteBarCard(bar, accentAmber, cardBackground),
+                            );
+                          },
+                        )
+                      : _buildEmptyState(accentAmber),
             ),
-          ),
-
-          // Descuento y botón
-          Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  discount,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              IconButton(
-                icon: const Icon(Icons.bookmark),
-                color: color,
-                onPressed: () {},
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildFavoriteBarCard(bar, Color accentAmber, Color cardBackground) {
+    final rating = bar.averageRating ?? 0.0;
+    final reviews = bar.totalReviews ?? 0;
+    
+    return GestureDetector(
+      onTap: () {
+        context.push('/client/bars/${bar.id}');
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Stack con imagen y botón de favorito
+            Stack(
+              children: [
+                // Imagen
+                Container(
+                  height: 140,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: bar.photo != null && bar.photo!.isNotEmpty
+                      ? Image.network(
+                          ImageUrlHelper.getFullImageUrl(bar.photo),
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildImagePlaceholder();
+                          },
+                        )
+                      : _buildImagePlaceholder(),
+                ),
+                
+                // Gradiente oscuro en la parte inferior de la imagen
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 60,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                
+                // Botón de favorito
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Consumer(
+                    builder: (context, ref, child) {
+                      final favoritesController = ref.watch(favoritesControllerProvider.notifier);
+                      return GestureDetector(
+                        onTap: () {
+                          favoritesController.toggleFavorite(bar.id);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.favorite,
+                            size: 20,
+                            color: Colors.red,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            // Información del bar
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nombre
+                  Text(
+                    bar.nameBar,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  // Ubicación
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: accentAmber,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          bar.location,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  
+                  // Rating y estado
+                  Row(
+                    children: [
+                      // Rating
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: accentAmber.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.star,
+                              size: 16,
+                              color: accentAmber,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '($reviews)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withOpacity(0.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const Spacer(),
+                      
+                      // Estado
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: bar.isActive
+                              ? const Color(0xFF10B981).withOpacity(0.15)
+                              : Colors.grey.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: bar.isActive
+                                ? const Color(0xFF10B981).withOpacity(0.5)
+                                : Colors.grey.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.access_time,
+                              size: 14,
+                              color: bar.isActive
+                                  ? const Color(0xFF10B981)
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              bar.isActive ? 'Abierto' : 'Cerrado',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: bar.isActive
+                                    ? const Color(0xFF10B981)
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF1A1A2E),
+            const Color(0xFF16213E),
+          ],
+        ),
+      ),
+      child: Icon(
+        Icons.storefront,
+        size: 64,
+        color: Colors.white.withOpacity(0.3),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(Color accentAmber) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -406,24 +383,43 @@ class ClientFavoritesScreen extends ConsumerWidget {
           Icon(
             Icons.favorite_border,
             size: 80,
-            color: Colors.grey.shade300,
+            color: Colors.white.withOpacity(0.3),
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'No tienes favoritos aún',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Empieza a guardar tus bares y\npromociones favoritas',
+            'Empieza a guardar tus bares\nfavoritos desde el inicio',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade500,
+              color: Colors.white.withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              context.go('/client/home');
+            },
+            icon: const Icon(Icons.explore),
+            label: const Text('Explorar Bares'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentAmber,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 12,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ],

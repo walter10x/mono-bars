@@ -11,6 +11,7 @@ import 'package:front_bars_flutter/modules/promotions/models/promotion_simple_mo
 import 'package:front_bars_flutter/modules/reviews/controllers/reviews_controller.dart';
 import 'package:front_bars_flutter/modules/reviews/views/reviews_widgets.dart';
 import 'package:front_bars_flutter/modules/reviews/views/write_review_screen.dart';
+import 'package:front_bars_flutter/modules/favorites/controllers/favorites_controller.dart';
 
 /// Pantalla de detalle de un bar para clientes
 class BarDetailScreen extends ConsumerStatefulWidget {
@@ -179,19 +180,26 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
         onPressed: () => context.pop(),
       ),
       actions: [
-      IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.favorite_border, color: accentAmber),
-        ),
-        onPressed: () {
-          // TODO: Agregar a favoritos
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Favoritos próximamente')),
+      Consumer(
+        builder: (context, ref, child) {
+          final favoritesController = ref.watch(favoritesControllerProvider.notifier);
+          final isFavorite = ref.watch(favoritesControllerProvider).isFavorite(bar.id);
+          
+          return IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.red : accentAmber,
+              ),
+            ),
+            onPressed: () {
+              favoritesController.toggleFavorite(bar.id);
+            },
           );
         },
       ),

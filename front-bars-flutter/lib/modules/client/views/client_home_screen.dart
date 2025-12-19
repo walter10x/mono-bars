@@ -5,6 +5,7 @@ import 'dart:async';
 
 import '../../auth/controllers/auth_controller.dart';
 import '../../bars/controllers/bars_controller.dart';
+import '../../favorites/controllers/favorites_controller.dart';
 import '../../../core/utils/image_url_helper.dart';
 
 /// Pantalla principal para clientes
@@ -703,26 +704,33 @@ class _ClientHomeScreenState extends ConsumerState<ClientHomeScreen> {
                   ),
                 ),
 
-                // Favorito
+                //Favorito
                 Positioned(
                   top: 12,
                   left: 12,
-                  child: GestureDetector(
-                    onTap: () {
-                      // TODO: Agregar a favoritos
+                  child: Consumer(
+                    builder: (context, ref, child) {
+                      final favoritesController = ref.watch(favoritesControllerProvider.notifier);
+                      final isFavorite = ref.watch(favoritesControllerProvider).isFavorite(barId);
+                      
+                      return GestureDetector(
+                        onTap: () {
+                          favoritesController.toggleFavorite(barId);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            size: 20,
+                            color: isFavorite ? Colors.red : Colors.white,
+                          ),
+                        ),
+                      );
                     },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.favorite_border,
-                        size: 20,
-                        color: Colors.white,
-                      ),
-                    ),
                   ),
                 ),
               ],
