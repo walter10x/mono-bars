@@ -26,7 +26,7 @@ class ProfileScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: const Color(0xFF0F0F1E),
       body: SafeArea(
         child: Column(
           children: [
@@ -49,7 +49,7 @@ class ProfileScreen extends ConsumerWidget {
                     title: 'Editar Perfil',
                     subtitle: 'Actualiza tu información personal',
                     onTap: () => context.push('/profile/edit'),
-                    iconColor: const Color(0xFF6366F1),
+                    iconColor: const Color(0xFFFFA500),
                   ),
 
                   // Cambiar Contraseña
@@ -58,7 +58,7 @@ class ProfileScreen extends ConsumerWidget {
                     title: 'Cambiar Contraseña',
                     subtitle: 'Mantén tu cuenta segura',
                     onTap: () => context.push('/profile/change-password'),
-                    iconColor: const Color(0xFF8B5CF6),
+                    iconColor: const Color(0xFFFFB84D),
                   ),
 
                   // Estadísticas (solo para owners y admins)
@@ -93,7 +93,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                    iconColor: Colors.grey.shade600,
+                    iconColor: Colors.white.withOpacity(0.5),
                   ),
 
                   const SizedBox(height: 16),
@@ -115,12 +115,12 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.shade50,
-                          foregroundColor: Colors.red.shade700,
+                          backgroundColor: const Color(0xFFFFA500).withOpacity(0.15),
+                          foregroundColor: const Color(0xFFFFA500),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(color: Colors.red.shade200),
+                            side: BorderSide(color: const Color(0xFFFFA500).withOpacity(0.3)),
                           ),
                        ),
                       ),
@@ -135,7 +135,7 @@ class ProfileScreen extends ConsumerWidget {
                       'Versión 1.0.0',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade500,
+                        color: Colors.white.withOpacity(0.4),
                       ),
                     ),
                   ),
@@ -155,6 +155,7 @@ class ProfileScreen extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2D),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -163,12 +164,12 @@ class ProfileScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.shade100,
+                color: const Color(0xFFFFA500).withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.logout_rounded,
-                color: Colors.orange.shade700,
+                color: Color(0xFFFFA500),
                 size: 28,
               ),
             ),
@@ -178,13 +179,17 @@ class ProfileScreen extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
           ],
         ),
-        content: const Text(
+        content: Text(
           '¿Estás seguro de que deseas cerrar sesión?',
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.white.withOpacity(0.7),
+          ),
         ),
         actions: [
           TextButton(
@@ -192,7 +197,7 @@ class ProfileScreen extends ConsumerWidget {
             child: Text(
               'Cancelar',
               style: TextStyle(
-                color: Colors.grey.shade600,
+                color: Colors.white.withOpacity(0.6),
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -201,8 +206,8 @@ class ProfileScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange.shade600,
-              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFFFFA500),
+              foregroundColor: const Color(0xFF0F0F1E),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -227,7 +232,7 @@ class ProfileScreen extends ConsumerWidget {
         barrierDismissible: false,
         builder: (context) => const Center(
           child: CircularProgressIndicator(
-            color: Color(0xFF6366F1),
+            color: Color(0xFFFFA500),
           ),
         ),
       );

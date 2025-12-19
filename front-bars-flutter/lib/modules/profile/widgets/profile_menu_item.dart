@@ -31,11 +31,15 @@ class ProfileMenuItem extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: backgroundColor ?? Colors.white,
+              color: backgroundColor ?? const Color(0xFF1E1E2D),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withOpacity(0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -69,7 +73,7 @@ class ProfileMenuItem extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F2937),
+                          color: Colors.white,
                         ),
                       ),
                       if (subtitle != null) ...[
@@ -78,7 +82,7 @@ class ProfileMenuItem extends StatelessWidget {
                           subtitle!,
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey.shade600,
+                            color: Colors.white.withOpacity(0.6),
                           ),
                         ),
                       ],
@@ -89,7 +93,7 @@ class ProfileMenuItem extends StatelessWidget {
                 // Flecha
                 Icon(
                   Icons.chevron_right,
-                  color: Colors.grey.shade400,
+                  color: Colors.white.withOpacity(0.4),
                 ),
               ],
             ),

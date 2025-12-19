@@ -49,41 +49,67 @@ class ProfileHeader extends StatelessWidget {
         return const Color(0xFFF59E0B); // Amber
       case 'client':
       default:
-        return const Color(0xFF6366F1); // Indigo
+        return const Color(0xFFFFA500); // Amber
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF6366F1),
-            Color(0xFF8B5CF6),
-            Color(0xFFA855F7),
+            const Color(0xFF1A1A2E),
+            const Color(0xFF16213E).withOpacity(0.8),
           ],
         ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Avatar
+          // Avatar con glow effect
           Stack(
+            alignment: Alignment.center,
             children: [
+              // Glow effect
               Container(
-                width: 120,
-                height: 120,
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFFFA500).withOpacity(0.4),
+                      const Color(0xFFFFA500).withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+              // Avatar principal
+              Container(
+                width: 110,
+                height: 110,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      color: const Color(0xFFFFA500).withOpacity(0.5),
+                      blurRadius: 30,
+                      spreadRadius: 5,
                     ),
                   ],
                 ),
@@ -91,13 +117,15 @@ class ProfileHeader extends StatelessWidget {
                   child: Text(
                     _getInitials(user),
                     style: const TextStyle(
-                      fontSize: 48,
+                      fontSize: 42,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF6366F1),
+                      color: Color(0xFFFFA500),
+                      letterSpacing: 2,
                     ),
                   ),
                 ),
               ),
+              // Botón editar
               if (onEditTap != null)
                 Positioned(
                   bottom: 0,
@@ -105,16 +133,31 @@ class ProfileHeader extends StatelessWidget {
                   child: GestureDetector(
                     onTap: onEditTap,
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1),
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFFFFA500),
+                            Color(0xFFFFB84D),
+                          ],
+                        ),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
+                        border: Border.all(
+                          color: const Color(0xFF1A1A2E),
+                          width: 4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFFA500).withOpacity(0.6),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
                       child: const Icon(
-                        Icons.edit,
+                        Icons.edit_rounded,
                         color: Colors.white,
-                        size: 20,
+                        size: 18,
                       ),
                     ),
                   ),
@@ -122,42 +165,65 @@ class ProfileHeader extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Nombre
+          // Nombre con estilo moderno
           Text(
             user.fullName,
             style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
+              letterSpacing: 0.5,
+              height: 1.2,
             ),
             textAlign: TextAlign.center,
           ),
 
           const SizedBox(height: 8),
 
-          // Email
-          Text(
-            user.email,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.9),
-            ),
+          // Email con icono
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.email_outlined,
+                size: 16,
+                color: Colors.white.withOpacity(0.7),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                user.email,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.8),
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Badge de rol
+          // Badge de rol con glassmorphism
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
-              color: _getRoleColor(user.role ?? 'client'),
-              borderRadius: BorderRadius.circular(25),
+              gradient: LinearGradient(
+                colors: [
+                  _getRoleColor(user.role ?? 'client').withOpacity(0.3),
+                  _getRoleColor(user.role ?? 'client').withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: _getRoleColor(user.role ?? 'client').withOpacity(0.5),
+                width: 1.5,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: _getRoleColor(user.role ?? 'client').withOpacity(0.3),
-                  blurRadius: 12,
+                  color: _getRoleColor(user.role ?? 'client').withOpacity(0.4),
+                  blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -167,15 +233,16 @@ class ProfileHeader extends StatelessWidget {
               children: [
                 Text(
                   _getRoleEmoji(user.role ?? 'client'),
-                  style: const TextStyle(fontSize: 18),
+                  style: const TextStyle(fontSize: 20),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Text(
                   _getRoleLabel(user.role ?? 'client'),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: _getRoleColor(user.role ?? 'client'),
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 15,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ],
