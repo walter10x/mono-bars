@@ -157,6 +157,7 @@ class User extends Equatable {
   final String? avatar;
   final String? role;
   final List<String> roles;
+  final List<String> favoriteBars;
   final bool isActive;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -171,6 +172,7 @@ class User extends Equatable {
     this.avatar,
     this.role,
     this.roles = const [],
+    this.favoriteBars = const [],
     this.isActive = true,
     this.createdAt,
     this.updatedAt,
@@ -182,14 +184,15 @@ class User extends Equatable {
 
   /// Getter para nombre completo
   String get fullName {
-    if (name != null && name!.isNotEmpty) {
-      return name!;
-    } else if (firstName != null && lastName != null) {
+    // Priorizar firstName + lastName sobre name (campo legacy)
+    if (firstName != null && lastName != null && firstName!.isNotEmpty && lastName!.isNotEmpty) {
       return '$firstName $lastName';
-    } else if (firstName != null) {
+    } else if (firstName != null && firstName!.isNotEmpty) {
       return firstName!;
-    } else if (lastName != null) {
+    } else if (lastName != null && lastName!.isNotEmpty) {
       return lastName!;
+    } else if (name != null && name!.isNotEmpty) {
+      return name!;
     }
     return email;
   }
@@ -233,6 +236,7 @@ class User extends Equatable {
         avatar,
         role,
         roles,
+        favoriteBars,
         isActive,
         createdAt,
         updatedAt,
@@ -247,6 +251,7 @@ class User extends Equatable {
     String? phone,
     String? avatar,
     List<String>? roles,
+    List<String>? favoriteBars,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -259,6 +264,7 @@ class User extends Equatable {
       phone: phone ?? this.phone,
       avatar: avatar ?? this.avatar,
       roles: roles ?? this.roles,
+      favoriteBars: favoriteBars ?? this.favoriteBars,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
