@@ -10,6 +10,7 @@ import { MenusModule } from './menus/menus.module';
 import { PromotionsModule } from './promotions/promotions.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { FavoritesModule } from './favorites/favorites.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ReviewsModule } from './reviews/reviews.module';
     PromotionsModule,
     ReservationsModule,
     ReviewsModule,
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
