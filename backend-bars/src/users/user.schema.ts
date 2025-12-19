@@ -24,6 +24,12 @@ export class User extends Document {
   name: string;
 
   @Prop({ required: false })
+  firstName?: string;
+
+  @Prop({ required: false })
+  lastName?: string;
+
+  @Prop({ required: false })
   phone?: string;
 
   @Prop({ required: true, default: 'client' })

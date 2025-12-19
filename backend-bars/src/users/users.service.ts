@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
@@ -63,22 +64,25 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: Partial<CreateUserDto>): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     this.logger.log(`Intentando actualizar usuario con id: ${id}`);
 
-    // No permitir cambio de email ni role en esta función
-    if ('email' in updateUserDto) {
-      delete updateUserDto.email;
-      this.logger.warn(`Intento de cambiar email bloqueado para usuario con id: ${id}`);
-    }
-    if ('role' in updateUserDto) {
-      delete updateUserDto.role;
-      this.logger.warn(`Intento de cambiar rol bloqueado para usuario con id: ${id}`);
-    }
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-      this.logger.log(`Contraseña encriptada para usuario con id: ${id}`);
+    // Si se actualizan firstName o lastName, sincronizar el campo name
+    if (updateUserDto.firstName || updateUserDto.lastName) {
+      const user = await this.findOne(id);
+      const firstName = updateUserDto.firstName ?? user.firstName ?? '';
+      const lastName = updateUserDto.lastName ?? user.lastName ?? '';
+      
+      // Actualizar el campo name con la combinación de firstName y lastName
+      if (firstName && lastName) {
+        (updateUserDto as any).name = `${firstName} ${lastName}`;
+      } else if (firstName) {
+        (updateUserDto as any).name = firstName;
+      } else if (lastName) {
+        (updateUserDto as any).name = lastName;
+      }
+      
+      this.logger.log(`Campo 'name' sincronizado: ${(updateUserDto as any).name}`);
     }
 
     const updatedUser = await this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();
