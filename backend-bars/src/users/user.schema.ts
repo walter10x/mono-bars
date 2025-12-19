@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema({
   timestamps: true, // Agrega createdAt y updatedAt automáticamente
@@ -31,6 +31,9 @@ export class User extends Document {
 
   @Prop({ required: false })
   phone?: string;
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Bar' }], default: [] })
+  favoriteBars: Types.ObjectId[];
 
   @Prop({ required: true, default: 'client' })
   role: 'owner' | 'client' | 'admin';
