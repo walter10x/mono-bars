@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
 import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
 import 'package:front_bars_flutter/modules/favorites/controllers/favorites_controller.dart';
+import 'package:front_bars_flutter/modules/promotions/controllers/promotions_controller.dart';
 import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
 
 /// Pantalla de lista de bares para clientes con búsqueda
@@ -24,9 +25,10 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
   @override
   void initState() {
     super.initState();
-    // Cargar todos los bares al iniciar
+    // Cargar bares y promociones al iniciar
     Future.microtask(() {
       ref.read(barsControllerProvider.notifier).loadAllBars();
+      ref.read(promotionsControllerProvider.notifier).loadAllActivePromotions();
     });
   }
 
@@ -52,16 +54,35 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
   @override
   Widget build(BuildContext context) {
     final barsState = ref.watch(barsControllerProvider);
+    final promotionsState = ref.watch(promotionsControllerProvider);
+    
+    // Color constants
+    const accentAmber = Color(0xFFFFA500);
+    const accentGold = Color(0xFFFFB84D);
+    const backgroundColor = Color(0xFF0F0F1E);
+    const primaryDark = Color(0xFF1A1A2E);
+    
+    // Calculate filter counts
+    final totalBars = barsState.bars.length;
+    final openBars = barsState.bars.where((bar) => bar.isActive == true).length;
+    
+    // Calcular bares con promociones usando los datos reales
+    final barIdsWithPromos = promotionsState.promotions
+        .map((promo) => promo.barId)
+        .toSet();
+    final barsWithPromos = barsState.bars
+        .where((bar) => barIdsWithPromos.contains(bar.id))
+        .length;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF6366F1),
-              Color(0xFF8B5CF6),
+              backgroundColor,
+              primaryDark,
             ],
           ),
         ),
@@ -74,45 +95,53 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Descubre Bares',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.local_fire_department,
+                          color: accentAmber,
+                          size: 32,
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Descubre Bares',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Explora los mejores locales',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white70,
+                        color: accentGold.withOpacity(0.8),
                       ),
                     ),
                     const SizedBox(height: 16),
                     // Campo de búsqueda
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color(0xFF1E1E2D),
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 1,
+                        ),
                       ),
                       child: TextField(
                         controller: _searchController,
                         onChanged: _onSearchChanged,
+                        style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
                           hintText: 'Buscar por nombre, ciudad, dirección...',
-                          hintStyle: TextStyle(color: Colors.grey.shade400),
-                          prefixIcon: const Icon(
+                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+                          prefixIcon: Icon(
                             Icons.search,
-                            color: Color(0xFF6366F1),
+                            color: accentAmber,
                           ),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
@@ -142,11 +171,11 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildFilterChip('Todos', 'all'),
+                      _buildFilterChip('Todos', 'all', totalBars, accentAmber),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Abierto', 'open'),
+                      _buildFilterChip('Abierto', 'open', openBars, accentAmber),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Con Promociones', 'promos'),
+                      _buildFilterChip('Con Promociones', 'promos', barsWithPromos, accentAmber),
                     ],
                   ),
                 ),
@@ -157,14 +186,14 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
               // Lista de bares
               Expanded(
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
                     ),
                   ),
-                  child: _buildBarsList(barsState),
+                  child: _buildBarsList(barsState, accentAmber, barIdsWithPromos),
                 ),
               ),
             ],
@@ -174,12 +203,12 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
     );
   }
 
-  Widget _buildBarsList(BarsState barsState) {
+  Widget _buildBarsList(BarsState barsState, Color accentColor, Set<String> barIdsWithPromos) {
     // Estado de carga
     if (barsState.status == BarsStatus.loading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
-          color: Color(0xFF6366F1),
+          color: accentColor,
         ),
       );
     }
@@ -195,7 +224,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
               Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Colors.grey.shade300,
+                color: Colors.white.withOpacity(0.3),
               ),
               const SizedBox(height: 16),
               Text(
@@ -203,7 +232,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade600,
+                  color: Colors.white.withOpacity(0.8),
                 ),
               ),
               const SizedBox(height: 8),
@@ -211,7 +240,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                 barsState.errorMessage ?? 'Error desconocido',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade500,
+                  color: Colors.white.withOpacity(0.6),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -223,7 +252,8 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Reintentar'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
+                  backgroundColor: accentColor,
+                  foregroundColor: const Color(0xFF1A1A2E),
                 ),
               ),
             ],
@@ -236,6 +266,9 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
     List<Bar> filteredBars = barsState.bars;
     if (_selectedFilter == 'open') {
       filteredBars = filteredBars.where((bar) => bar.isActive).toList();
+    } else if (_selectedFilter == 'promos') {
+      // Filtrar solo bares que tienen promociones activas
+      filteredBars = filteredBars.where((bar) => barIdsWithPromos.contains(bar.id)).toList();
     }
 
     // Lista vacía
@@ -249,27 +282,31 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
               Icon(
                 Icons.search_off,
                 size: 64,
-                color: Colors.grey.shade300,
+                color: Colors.white.withOpacity(0.3),
               ),
               const SizedBox(height: 16),
               Text(
                 _searchController.text.isNotEmpty
                     ? 'No se encontraron bares'
-                    : 'No hay bares disponibles',
+                    : _selectedFilter == 'all'
+                        ? 'No hay bares disponibles'
+                        : _selectedFilter == 'open'
+                            ? 'No hay bares abiertos'
+                            : 'No hay bares con promociones',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade600,
+                  color: Colors.white.withOpacity(0.8),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 _searchController.text.isNotEmpty
                     ? 'Intenta con otros términos de búsqueda'
-                    : 'Vuelve a intentar más tarde',
+                    : 'Prueba cambiando el filtro',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade500,
+                  color: Colors.white.withOpacity(0.6),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -293,7 +330,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
+  Widget _buildFilterChip(String label, String value, int count, Color accentColor) {
     final isSelected = _selectedFilter == value;
     return InkWell(
       onTap: () {
@@ -301,19 +338,47 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
           _selectedFilter = value;
         });
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
+          color: isSelected ? accentColor : const Color(0xFF1E1E2D),
           borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? const Color(0xFF6366F1) : Colors.white,
+          border: Border.all(
+            color: isSelected ? accentColor : Colors.white.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
           ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? const Color(0xFF1A1A2E) : Colors.white,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: isSelected 
+                    ? const Color(0xFF1A1A2E).withOpacity(0.2)
+                    : accentColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                count.toString(),
+                style: TextStyle(
+                  color: isSelected ? const Color(0xFF1A1A2E) : accentColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -326,16 +391,16 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1E1E2D),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.grey.shade200,
+          color: Colors.white.withOpacity(0.1),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -414,7 +479,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -427,7 +492,7 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                           icon: Icon(
                             isFavorite ? Icons.favorite : Icons.favorite_border,
                           ),
-                          color: isFavorite ? Colors.red : Colors.grey.shade400,
+                          color: isFavorite ? Colors.red : Colors.white.withOpacity(0.6),
                           iconSize: 24,
                           onPressed: () {
                             favoritesController.toggleFavorite(bar.id);
@@ -438,49 +503,50 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        bar.location,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: const Color(0xFFFFA500),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          bar.location,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     const Icon(
                       Icons.star,
                       size: 18,
-                      color: Color(0xFFF59E0B),
+                      color: Color(0xFFFFA500),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       rating.toStringAsFixed(1),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white.withOpacity(0.9),
                       ),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '($reviews reseñas)',
+                      '($reviews ${reviews == 1 ? 'reseña' : 'reseñas'})',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: Colors.white.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -493,7 +559,8 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
                       context.push('/client/bars/${bar.id}');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
+                      backgroundColor: const Color(0xFFFFA500),
+                      foregroundColor: const Color(0xFF1A1A2E),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
