@@ -7,6 +7,7 @@ import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart
 import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
 import 'package:front_bars_flutter/modules/favorites/controllers/favorites_controller.dart';
 import 'package:front_bars_flutter/modules/promotions/controllers/promotions_controller.dart';
+import 'package:front_bars_flutter/modules/promotions/models/promotion_simple_model.dart';
 import 'package:front_bars_flutter/core/utils/image_url_helper.dart';
 
 /// Pantalla de lista de bares para clientes con búsqueda
@@ -25,10 +26,9 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
   @override
   void initState() {
     super.initState();
-    // Cargar bares y promociones al iniciar
+    // Solo cargar bares - las promociones se cargan automáticamente con allActivePromotionsControllerProvider
     Future.microtask(() {
       ref.read(barsControllerProvider.notifier).loadAllBars();
-      ref.read(promotionsControllerProvider.notifier).loadAllActivePromotions();
     });
   }
 
@@ -54,7 +54,8 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
   @override
   Widget build(BuildContext context) {
     final barsState = ref.watch(barsControllerProvider);
-    final promotionsState = ref.watch(promotionsControllerProvider);
+    // Usar el provider SEPARADO para promociones activas
+    final allActivePromotionsState = ref.watch(allActivePromotionsControllerProvider);
     
     // Color constants
     const accentAmber = Color(0xFFFFA500);
@@ -66,10 +67,11 @@ class _ClientBarsListScreenState extends ConsumerState<ClientBarsListScreen> {
     final totalBars = barsState.bars.length;
     final openBars = barsState.bars.where((bar) => bar.isActive == true).length;
     
-    // Calcular bares con promociones usando los datos reales
-    final barIdsWithPromos = promotionsState.promotions
+    // Calcular bares con promociones usando el provider dedicado
+    final barIdsWithPromos = allActivePromotionsState.promotions
         .map((promo) => promo.barId)
         .toSet();
+    
     final barsWithPromos = barsState.bars
         .where((bar) => barIdsWithPromos.contains(bar.id))
         .length;
