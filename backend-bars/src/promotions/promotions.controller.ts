@@ -98,6 +98,12 @@ export class PromotionsController {
     return this.promotionsService.findAllActive();
   }
 
+  @Get('featured')
+  async findFeatured() {
+    this.logger.log('Obteniendo promociones destacadas');
+    return this.promotionsService.findFeatured();
+  }
+
   @Get()
   async findAll() {
     return this.promotionsService.findAll();
