@@ -39,6 +39,21 @@ class PromotionsService {
     }
   }
 
+  Future<List<PromotionSimple>> getFeaturedPromotions() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/featured'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => PromotionSimple.fromJson(json)).toList();
+      } else {
+        throw Exception('Error al cargar promociones destacadas: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
   Future<List<Promotion>> getMyPromotions(String token) async {
     try {
       final response = await http.get(

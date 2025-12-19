@@ -129,6 +129,21 @@ class PromotionsController extends _$PromotionsController {
     }
   }
 
+  Future<List<PromotionSimple>> loadFeaturedPromotions() async {
+    try {
+      final service = ref.read(promotionsServiceProvider);
+      final promotions = await service.getFeaturedPromotions();
+
+      print('🔥 LOADED ${promotions.length} FEATURED PROMOTIONS');
+      promotions.forEach((p) => print('  - ${p.title} at ${p.barName}'));
+
+      return promotions;
+    } catch (e) {
+      print('❌ ERROR loading featured promotions: $e');
+      return [];
+    }
+  }
+
   Future<void> createPromotion(CreatePromotionRequest request) async {
     state = state.copyWith(isLoading: true, error: null);
 
