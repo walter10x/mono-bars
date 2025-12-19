@@ -10,6 +10,8 @@ class PromotionSimple extends Equatable {
   final String title;
   final String? description;
   final String barId;
+  final String? barName;  // Nombre del bar (viene en all-active)
+  final String? barLogo;  // Logo del bar (viene en all-active)
   final double? discountPercentage;
   final DateTime validFrom;
   final DateTime validUntil;
@@ -24,6 +26,8 @@ class PromotionSimple extends Equatable {
     required this.title,
     this.description,
     required this.barId,
+    this.barName,
+    this.barLogo,
     this.discountPercentage,
     required this.validFrom,
     required this.validUntil,
@@ -45,6 +49,8 @@ class PromotionSimple extends Equatable {
         title,
         description,
         barId,
+        barName,
+        barLogo,
         discountPercentage,
         validFrom,
         validUntil,

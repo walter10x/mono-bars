@@ -106,6 +106,29 @@ class PromotionsController extends _$PromotionsController {
     }
   }
 
+  Future<void> loadAllActivePromotions() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final service = ref.read(promotionsServiceProvider);
+      final promotions = await service.getAllActivePromotions();
+
+      print('🎁 LOADED ${promotions.length} ACTIVE PROMOTIONS FROM ALL BARS');
+      promotions.forEach((p) => print('  - ${p.title} at ${p.barName ?? p.barId}'));
+
+      state = state.copyWith(
+        promotions: promotions,
+        isLoading: false,
+      );
+    } catch (e) {
+      print('❌ ERROR loading active promotions: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
   Future<void> createPromotion(CreatePromotionRequest request) async {
     state = state.copyWith(isLoading: true, error: null);
 
