@@ -153,6 +153,7 @@ class User extends Equatable {
   final String? name;
   final String? firstName;
   final String? lastName;
+  final String? phone;
   final String? avatar;
   final String? role;
   final List<String> roles;
@@ -166,6 +167,7 @@ class User extends Equatable {
     this.name,
     this.firstName,
     this.lastName,
+    this.phone,
     this.avatar,
     this.role,
     this.roles = const [],
@@ -227,6 +229,7 @@ class User extends Equatable {
         name,
         firstName,
         lastName,
+        phone,
         avatar,
         role,
         roles,
@@ -241,6 +244,7 @@ class User extends Equatable {
     String? email,
     String? firstName,
     String? lastName,
+    String? phone,
     String? avatar,
     List<String>? roles,
     bool? isActive,
@@ -252,6 +256,7 @@ class User extends Equatable {
       email: email ?? this.email,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
+      phone: phone ?? this.phone,
       avatar: avatar ?? this.avatar,
       roles: roles ?? this.roles,
       isActive: isActive ?? this.isActive,

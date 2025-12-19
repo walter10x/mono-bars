@@ -106,6 +106,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       name: json['name'] as String?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
+      phone: json['phone'] as String?,
       avatar: json['avatar'] as String?,
       role: json['role'] as String?,
       roles:
@@ -126,6 +127,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'name': instance.name,
       'firstName': instance.firstName,
       'lastName': instance.lastName,
+      'phone': instance.phone,
       'avatar': instance.avatar,
       'role': instance.role,
       'roles': instance.roles,

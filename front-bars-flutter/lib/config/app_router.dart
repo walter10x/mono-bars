@@ -8,6 +8,7 @@ import '../modules/auth/views/register_screen.dart';
 import '../modules/home/views/home_screen.dart';
 import '../modules/profile/views/profile_screen.dart';
 import '../modules/profile/views/change_password_screen.dart';
+import '../modules/profile/views/edit_profile_screen.dart';
 
 // Owner screens
 import '../modules/owner/views/owner_dashboard_screen.dart';
@@ -75,6 +76,7 @@ class AppRouter {
   
   // Rutas comunes
   static const String profile = '/profile';
+  static const String editProfile = '/profile/edit';
   static const String changePassword = '/profile/change-password';
   
   /// Crea la configuración del router
@@ -350,6 +352,12 @@ class AppRouter {
           path: profile,
           name: 'profile',
           builder: (context, state) => const ProfileScreen(),
+        ),
+        
+        GoRoute(
+          path: editProfile,
+          name: 'editProfile',
+          builder: (context, state) => const EditProfileScreen(),
         ),
         
         GoRoute(
