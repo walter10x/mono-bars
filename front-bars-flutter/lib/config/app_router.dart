@@ -452,14 +452,25 @@ class _OwnerNavigationWrapperState extends ConsumerState<OwnerNavigationWrapper>
 
   @override
   Widget build(BuildContext context) {
+    const accentAmber = Color(0xFFFFA500);
+    const primaryDark = Color(0xFF1A1A2E);
+    
     return Scaffold(
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: const Color(0xFF6366F1),
-        unselectedItemColor: Colors.grey,
+        backgroundColor: primaryDark,
+        selectedItemColor: accentAmber,
+        unselectedItemColor: Colors.grey.shade600,
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+        ),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -531,14 +542,25 @@ class _ClientNavigationWrapperState extends ConsumerState<ClientNavigationWrappe
 
   @override
   Widget build(BuildContext context) {
+    const accentAmber = Color(0xFFFFA500);
+    const primaryDark = Color(0xFF1A1A2E);
+    
     return Scaffold(
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: const Color(0xFF6366F1),
-        unselectedItemColor: Colors.grey,
+        backgroundColor: primaryDark,
+        selectedItemColor: accentAmber,
+        unselectedItemColor: Colors.grey.shade600,
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+        ),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
