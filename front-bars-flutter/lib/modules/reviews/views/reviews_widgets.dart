@@ -257,12 +257,14 @@ class StarRatingInput extends StatelessWidget {
   final int rating;
   final ValueChanged<int> onRatingChanged;
   final double size;
+  final Color? color;
 
   const StarRatingInput({
     super.key,
     required this.rating,
     required this.onRatingChanged,
     this.size = 40,
+    this.color,
   });
 
   @override
@@ -279,7 +281,7 @@ class StarRatingInput extends StatelessWidget {
               starNumber <= rating ? Icons.star : Icons.star_border,
               size: size,
               color: starNumber <= rating
-                  ? const Color(0xFFF59E0B)
+                  ? (color ?? const Color(0xFFF59E0B))
                   : Colors.grey.shade400,
             ),
           ),

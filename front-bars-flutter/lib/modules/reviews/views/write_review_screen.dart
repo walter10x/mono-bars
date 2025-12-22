@@ -34,25 +34,33 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const primaryDark = Color(0xFF1A1A2E);
+    const backgroundDark = Color(0xFF0F0F1E);
+    const cardBackground = Color(0xFF1E1E2D);
+    const accentAmber = Color(0xFFFFA500);
+    const accentGold = Color(0xFFFFB84D);
+
     return Scaffold(
+      backgroundColor: backgroundDark,
       appBar: AppBar(
         title: const Text('Escribir Reseña'),
         centerTitle: true,
-        backgroundColor: const Color(0xFF6366F1),
+        backgroundColor: primaryDark,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Nombre del bar
+            // Nombre del bar con estilo destacado
             Text(
               widget.barName,
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1F2937),
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -60,71 +68,114 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
               '¿Qué te pareció este lugar?',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade600,
+                color: Colors.white.withOpacity(0.7),
               ),
             ),
             const SizedBox(height: 32),
 
-            // Rating
-            const Text(
-              'Tu valoración',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            // Rating en card oscura
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: cardBackground,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: StarRatingInput(
-                rating: _rating,
-                onRatingChanged: (rating) {
-                  setState(() {
-                    _rating = rating;
-                  });
-                },
-                size: 48,
-              ),
-            ),
-            if (_rating > 0)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    _getRatingText(_rating),
+              child: Column(
+                children: [
+                  const Text(
+                    'Tu valoración',
                     style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  StarRatingInput(
+                    rating: _rating,
+                    onRatingChanged: (rating) {
+                      setState(() {
+                        _rating = rating;
+                      });
+                    },
+                    size: 52,
+                    color: accentAmber,
+                  ),
+                  if (_rating > 0) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _getRatingText(_rating),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: accentAmber,
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            const SizedBox(height: 32),
+            ),
 
-            // Comentario
+            const SizedBox(height: 24),
+
+            // Comentario con estilo dark
             const Text(
               'Tu comentario',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _commentController,
-              maxLines: 5,
+              maxLines: 6,
               maxLength: 500,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+              ),
               decoration: InputDecoration(
                 hintText: 'Cuéntanos tu experiencia...',
-                hintStyle: TextStyle(color: Colors.grey.shade400),
+                hintStyle: TextStyle(
+                  color: Colors.white.withOpacity(0.4),
+                  fontSize: 15,
+                ),
                 filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor: cardBackground,
+                counterStyle: TextStyle(
+                  color: Colors.white.withOpacity(0.5),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Colors.white.withOpacity(0.1),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
+                  borderSide: const BorderSide(
+                    color: accentAmber,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -132,42 +183,105 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
             Text(
               'Mínimo 10 caracteres',
               style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade500,
+                fontSize: 13,
+                color: Colors.white.withOpacity(0.5),
               ),
             ),
             const SizedBox(height: 32),
 
-            // Botón enviar
+            // Botón enviar con gradiente
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _canSubmit() ? _submitReview : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Publicar Reseña',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+              child: _canSubmit()
+                  ? Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _isSubmitting ? null : _submitReview,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                accentAmber,
+                                accentGold,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accentAmber.withOpacity(0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            child: _isSubmitting
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      color: primaryDark,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(
+                                        Icons.send_rounded,
+                                        color: primaryDark,
+                                        size: 22,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'Publicar Reseña',
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold,
+                                          color: primaryDark,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
                         ),
                       ),
-              ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.send_rounded,
+                            color: Colors.white.withOpacity(0.3),
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Publicar Reseña',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white.withOpacity(0.3),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
