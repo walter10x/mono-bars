@@ -37,6 +37,11 @@ class ClientPromotionDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
+                // Información del bar
+                _buildBarInfo(context),
+
+                const SizedBox(height: 24),
+
                 // Información del descuento
                 if (promotion.discountPercentage != null)
                   _buildDiscountInfo(),
@@ -188,6 +193,108 @@ class ClientPromotionDetailScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBarInfo(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            // Navegar al detalle del bar
+            context.push('/client/bars/${promotion.barId}');
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  // Logo del bar o placeholder
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: promotion.barLogo != null && promotion.barLogo!.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              ImageUrlHelper.getFullImageUrl(promotion.barLogo),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildBarPlaceholder();
+                              },
+                            ),
+                          )
+                        : _buildBarPlaceholder(),
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  // Información del bar
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          promotion.barName ?? 'Bar no disponible',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Ver detalles del bar',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Icono de navegación
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Color(0xFF6B7280),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBarPlaceholder() {
+    return Center(
+      child: Icon(
+        Icons.storefront,
+        size: 28,
+        color: Colors.grey.shade400,
       ),
     );
   }
