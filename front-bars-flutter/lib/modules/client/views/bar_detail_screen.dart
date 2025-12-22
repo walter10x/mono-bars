@@ -1260,19 +1260,59 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
                 // Botón ver promoción completa
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      context.push(
-                        '/client/promotion/${promotion.id}',
-                        extra: promotion,
-                      );
-                    },
-                    icon: const Icon(Icons.visibility, size: 18),
-                    label: const Text('Ver Promoción Completa'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF6366F1),
-                      side: const BorderSide(color: Color(0xFF6366F1)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        context.push(
+                          '/client/promotion/${promotion.id}',
+                          extra: promotion,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              accentAmber,
+                              accentGold,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentAmber.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.visibility,
+                                size: 20,
+                                color: Color(0xFF1A1A2E),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Ver Promoción Completa',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1A1A2E),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -1395,6 +1435,7 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
 
   Widget _buildReserveButton(Bar bar) {
     const accentAmber = Color(0xFFFFA500);
+    const accentGold = Color(0xFFFFB84D);
     const primaryDark = Color(0xFF1A1A2E);
     
     return Container(
@@ -1410,52 +1451,57 @@ class _BarDetailScreenState extends ConsumerState<BarDetailScreen>
         ],
       ),
       child: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              // Navegar al formulario de reserva con el bar preseleccionado
+              context.push(
+                '/client/reservations/create?barId=${bar.id}',
+              );
+            },
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: accentAmber.withOpacity(0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Navegar al formulario de reserva con el bar preseleccionado
-                context.push(
-                  '/client/reservations/create?barId=${bar.id}',
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentAmber,
-                foregroundColor: primaryDark,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    accentAmber,
+                    accentGold,
+                  ],
                 ),
-                elevation: 0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(
-                    Icons.event_seat,
-                    size: 24,
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'RESERVAR MESA',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: accentAmber.withOpacity(0.5),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
                 ],
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(
+                      Icons.event_seat,
+                      size: 26,
+                      color: primaryDark,
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'RESERVAR MESA',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.0,
+                        color: primaryDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
