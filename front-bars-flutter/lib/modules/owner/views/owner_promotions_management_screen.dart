@@ -10,6 +10,7 @@ import 'package:front_bars_flutter/modules/promotions/models/promotion_models.da
 import 'package:front_bars_flutter/modules/promotions/models/promotion_simple_model.dart';
 
 /// Pantalla de gestión de promociones para propietarios
+/// Rediseñada con tema oscuro premium
 class OwnerPromotionsManagementScreen extends ConsumerStatefulWidget {
   const OwnerPromotionsManagementScreen({super.key});
 
@@ -20,6 +21,16 @@ class OwnerPromotionsManagementScreen extends ConsumerStatefulWidget {
 
 class _OwnerPromotionsManagementScreenState
     extends ConsumerState<OwnerPromotionsManagementScreen> {
+  // Colores del tema oscuro premium
+  static const backgroundColor = Color(0xFF0F0F1E);
+  static const primaryDark = Color(0xFF1A1A2E);
+  static const secondaryDark = Color(0xFF16213E);
+  static const accentAmber = Color(0xFFFFA500);
+  static const accentGold = Color(0xFFFFB84D);
+  
+  // Color accent para promociones (rosa vibrante)
+  static const promoAccent = Color(0xFFEC4899);
+
   String? selectedBarId;
 
   @override
@@ -50,187 +61,235 @@ class _OwnerPromotionsManagementScreenState
             .where((p) => p.barId == selectedBarId)
             .toList();
 
-    print('📊 OWNER PROMOTIONS SCREEN');
-    print('   Total promotions: ${promotionsState.promotions.length}');
-    print('   Filtered: ${filteredPromotions.length}');
-    print('   Selected bar: $selectedBarId');
-
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFEC4899),
-              Color(0xFFF97316),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Promociones',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${filteredPromotions.length} ${filteredPromotions.length == 1 ? 'promoción' : 'promociones'}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: selectedBarId == null
-                          ? null
-                          : () {
-                              context.push('/owner/promotions/create/$selectedBarId');
-                            },
-                      icon: const Icon(Icons.add),
-                      label: const Text('Nueva'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFFEC4899),
-                        disabledBackgroundColor: Colors.white54,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      backgroundColor: backgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header con estilo premium
+            _buildHeader(filteredPromotions.length),
 
-              // Selector de Bar
-              if (barsState.status == BarsStatus.loaded &&
-                  barsState.bars.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: DropdownButton<String?>(
-                      value: selectedBarId,
-                      hint: const Text(
-                        'Selecciona un bar',
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                      isExpanded: true,
-                      dropdownColor: const Color(0xFFEC4899),
-                      underline: const SizedBox(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      items: [
-                        const DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text('Todos los bares'),
-                        ),
-                        ...barsState.bars.map((bar) {
-                          return DropdownMenuItem<String?>(
-                            value: bar.id,
-                            child: Text(bar.nameBar),
-                          );
-                        }).toList(),
-                      ],
-                      onChanged: (barId) {
-                        setState(() {
-                          selectedBarId = barId;
-                        });
-                      },
-                    ),
-                  ),
-                ),
+            // Selector de Bar
+            if (barsState.status == BarsStatus.loaded &&
+                barsState.bars.isNotEmpty)
+              _buildBarSelector(barsState),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-              // Lista de promociones
-              Expanded(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-                  child: _buildContent(promotionsState, filteredPromotions),
-                ),
-              ),
-            ],
-          ),
+            // Lista de promociones
+            Expanded(
+              child: _buildContent(promotionsState, filteredPromotions),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// Convierte PromotionSimple a Promotion para compatibilidad
-  List<Promotion> _convertToPromotionList(List<dynamic> simplePromotions) {
-    return simplePromotions.map((promo) {
-      // Si ya es Promotion, retornar directamente
-      if (promo is Promotion) return promo;
-      
-      // Si es PromotionSimple, convertir
-      final simple = promo as PromotionSimple;
-      return Promotion(
-        id: simple.id,
-        title: simple.title,
-        description: simple.description ?? '',
-        type: PromotionType.discount, // Default type
-        status: simple.isActive ? PromotionStatus.active : PromotionStatus.paused,
-        barId: simple.barId,
-        image: simple.photoUrl,
-        images: simple.photoUrl != null ? [simple.photoUrl!] : [],
-        discountPercentage: simple.discountPercentage,
-        discountAmount: null,
-        minimumPurchase: null,
-        startDate: simple.validFrom,
-        endDate: simple.validUntil,
-        applicableItems: const [],
-        applicableCategories: const [],
-        maxUses: null,
-        currentUses: 0,
-        daysOfWeek: const [],
-        startTime: null,
-        endTime: null,
-        requiresCode: false,
-        promotionCode: null,
-        createdAt: simple.createdAt,
-        updatedAt: simple.updatedAt,
-      );
-    }).toList();
+  Widget _buildHeader(int promotionCount) {
+    return Container(
+      margin: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primaryDark,
+            secondaryDark,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: accentAmber.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accentAmber.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [accentAmber, accentGold],
+                  ).createShader(bounds),
+                  child: const Text(
+                    'Promociones',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: promoAccent.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$promotionCount',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: promoAccent,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      promotionCount == 1 ? 'promoción' : 'promociones',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: selectedBarId != null
+                  ? const LinearGradient(colors: [accentAmber, accentGold])
+                  : null,
+              color: selectedBarId == null ? Colors.grey.shade700 : null,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: selectedBarId != null
+                  ? [
+                      BoxShadow(
+                        color: accentAmber.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: selectedBarId == null
+                    ? null
+                    : () => context.push('/owner/promotions/create/$selectedBarId'),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.add,
+                        color: selectedBarId != null ? Colors.black : Colors.white54,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Nueva',
+                        style: TextStyle(
+                          color: selectedBarId != null ? Colors.black : Colors.white54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBarSelector(BarsState barsState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: primaryDark,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: accentAmber.withOpacity(0.2),
+          ),
+        ),
+        child: DropdownButton<String?>(
+          value: selectedBarId,
+          hint: Text(
+            'Selecciona un bar',
+            style: TextStyle(color: Colors.white.withOpacity(0.6)),
+          ),
+          isExpanded: true,
+          dropdownColor: primaryDark,
+          underline: const SizedBox(),
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            color: accentAmber,
+          ),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+          items: [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Row(
+                children: [
+                  Icon(Icons.store, color: accentAmber, size: 20),
+                  const SizedBox(width: 12),
+                  const Text('Todos los bares'),
+                ],
+              ),
+            ),
+            ...barsState.bars.map((bar) {
+              return DropdownMenuItem<String?>(
+                value: bar.id,
+                child: Row(
+                  children: [
+                    Icon(Icons.storefront, color: accentGold, size: 20),
+                    const SizedBox(width: 12),
+                    Text(bar.nameBar),
+                  ],
+                ),
+              );
+            }),
+          ],
+          onChanged: (barId) {
+            setState(() {
+              selectedBarId = barId;
+            });
+          },
+        ),
+      ),
+    );
   }
 
   Widget _buildContent(PromotionsState state, List<PromotionSimple> promotions) {
     if (state.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return Center(
+        child: CircularProgressIndicator(
+          color: accentAmber,
+        ),
       );
     }
 
@@ -242,8 +301,10 @@ class _OwnerPromotionsManagementScreenState
       onRefresh: () async {
         await ref.read(promotionsControllerProvider.notifier).loadMyPromotions();
       },
+      color: accentAmber,
+      backgroundColor: primaryDark,
       child: ListView.separated(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         itemCount: promotions.length,
         separatorBuilder: (context, index) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
@@ -261,12 +322,19 @@ class _OwnerPromotionsManagementScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.local_offer_outlined,
-              size: 80,
-              color: Colors.grey.shade300,
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: promoAccent.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.local_offer_outlined,
+                size: 80,
+                color: promoAccent.withOpacity(0.6),
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Text(
               selectedBarId != null
                   ? 'No hay promociones para este bar'
@@ -274,7 +342,7 @@ class _OwnerPromotionsManagementScreenState
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1F2937),
+                color: Colors.white,
               ),
               textAlign: TextAlign.center,
             ),
@@ -285,27 +353,52 @@ class _OwnerPromotionsManagementScreenState
                   : 'Selecciona un bar y crea tu primera promoción',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade600,
+                color: Colors.white.withOpacity(0.6),
               ),
               textAlign: TextAlign.center,
             ),
             if (selectedBarId != null) ...[
               const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: () {
-                  context.push('/owner/promotions/create/$selectedBarId');
-                },
-                icon: const Icon(Icons.add_business),
-                label: const Text('Crear Promoción'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEC4899),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [accentAmber, accentGold],
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentAmber.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.push('/owner/promotions/create/$selectedBarId'),
+                    borderRadius: BorderRadius.circular(16),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add_business, color: Colors.black),
+                          SizedBox(width: 12),
+                          Text(
+                            'Crear Promoción',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -318,9 +411,9 @@ class _OwnerPromotionsManagementScreenState
 
   Widget _buildPromotionCard(PromotionSimple promotionSimple) {
     // Convert to Promotion for display
-    final promotion = _convertToPromotionList([promotionSimple]).first;
+    final promotion = _convertToPromotion(promotionSimple);
     final barsState = ref.watch(barsControllerProvider);
-    
+
     // Encontrar el bar correspondiente
     final bar = barsState.bars.firstWhere(
       (b) => b.id == promotion.barId,
@@ -335,17 +428,19 @@ class _OwnerPromotionsManagementScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: primaryDark,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isActive ? const Color(0xFFEC4899).withOpacity(0.3) : Colors.grey.shade200,
+          color: isActive 
+              ? promoAccent.withOpacity(0.3) 
+              : accentAmber.withOpacity(0.2),
           width: isActive ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -355,14 +450,14 @@ class _OwnerPromotionsManagementScreenState
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEC4899).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: promoAccent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.local_offer,
-                  color: Color(0xFFEC4899),
+                  color: promoAccent,
                   size: 24,
                 ),
               ),
@@ -376,48 +471,32 @@ class _OwnerPromotionsManagementScreenState
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      bar.nameBar,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.storefront,
+                          size: 14,
+                          color: Colors.white.withOpacity(0.5),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          bar.nameBar,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
               // Estado
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isExpired
-                      ? Colors.grey.shade100
-                      : isActive
-                          ? Colors.green.shade50
-                          : Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  isExpired
-                      ? 'Expirada'
-                      : promotion.status == PromotionStatus.active
-                          ? 'Activa'
-                          : 'Pausada',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isExpired
-                        ? Colors.grey.shade700
-                        : isActive
-                            ? Colors.green.shade700
-                            : Colors.orange.shade700,
-                  ),
-                ),
-              ),
+              _buildStatusBadge(isExpired, isActive, promotion.status),
             ],
           ),
           if (promotion.description.isNotEmpty) ...[
@@ -426,7 +505,7 @@ class _OwnerPromotionsManagementScreenState
               promotion.description,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade700,
+                color: Colors.white.withOpacity(0.6),
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -437,17 +516,19 @@ class _OwnerPromotionsManagementScreenState
             children: [
               if (promotion.discountPercentage != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEC4899).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    gradient: const LinearGradient(
+                      colors: [promoAccent, Color(0xFFF472B6)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '${promotion.discountPercentage}% OFF',
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFEC4899),
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -455,62 +536,48 @@ class _OwnerPromotionsManagementScreenState
               ],
               Icon(
                 Icons.calendar_today,
-                size: 16,
-                color: Colors.grey.shade600,
+                size: 14,
+                color: Colors.white.withOpacity(0.5),
               ),
               const SizedBox(width: 4),
               Text(
                 '${dateFormat.format(promotion.startDate)} - ${dateFormat.format(promotion.endDate)}',
                 style: TextStyle(
                   fontSize: 13,
-                  color: Colors.grey.shade600,
+                  color: Colors.white.withOpacity(0.6),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               // Ver promoción
-              IconButton.filled(
-                onPressed: () {
-                  context.push(
-                    '/owner/promotions/${promotion.id}/preview',
-                    extra: promotion,
-                  );
-                },
-                icon: const Icon(Icons.visibility),
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
-                  foregroundColor: const Color(0xFF6366F1),
-                ),
+              _buildActionButton(
+                icon: Icons.visibility,
+                color: const Color(0xFF10B981),
                 tooltip: 'Ver promoción',
+                onTap: () => context.push(
+                  '/owner/promotions/${promotion.id}/preview',
+                  extra: promotion,
+                ),
               ),
+              const SizedBox(width: 8),
               // Editar
-              IconButton.filled(
-                onPressed: () {
-                  // TODO: Editar promoción
-                  context.showInfoSnackBar('Editar promoción - En desarrollo');
-                },
-                icon: const Icon(Icons.edit),
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFFEC4899).withOpacity(0.1),
-                  foregroundColor: const Color(0xFFEC4899),
-                ),
+              _buildActionButton(
+                icon: Icons.edit,
+                color: accentAmber,
                 tooltip: 'Editar',
+                onTap: () => context.showInfoSnackBar('Editar promoción - En desarrollo'),
               ),
+              const SizedBox(width: 8),
               // Eliminar
-              IconButton.filled(
-                onPressed: () {
-                  _showDeleteConfirmation(promotion);
-                },
-                icon: const Icon(Icons.delete),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.red.shade50,
-                  foregroundColor: Colors.red,
-                ),
+              _buildActionButton(
+                icon: Icons.delete_outline,
+                color: const Color(0xFFEF4444),
                 tooltip: 'Eliminar',
+                onTap: () => _showDeleteConfirmation(promotion),
               ),
             ],
           ),
@@ -519,41 +586,181 @@ class _OwnerPromotionsManagementScreenState
     );
   }
 
+  Widget _buildStatusBadge(bool isExpired, bool isActive, PromotionStatus status) {
+    Color bgColor;
+    Color textColor;
+    String text;
+
+    if (isExpired) {
+      bgColor = Colors.grey.withOpacity(0.2);
+      textColor = Colors.grey.shade400;
+      text = 'Expirada';
+    } else if (isActive) {
+      bgColor = const Color(0xFF10B981).withOpacity(0.15);
+      textColor = const Color(0xFF10B981);
+      text = 'Activa';
+    } else {
+      bgColor = accentAmber.withOpacity(0.15);
+      textColor = accentAmber;
+      text = 'Pausada';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: textColor.withOpacity(0.3),
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: color.withOpacity(0.3),
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Promotion _convertToPromotion(PromotionSimple simple) {
+    return Promotion(
+      id: simple.id,
+      title: simple.title,
+      description: simple.description ?? '',
+      type: PromotionType.discount,
+      status: simple.isActive ? PromotionStatus.active : PromotionStatus.paused,
+      barId: simple.barId,
+      image: simple.photoUrl,
+      images: simple.photoUrl != null ? [simple.photoUrl!] : [],
+      discountPercentage: simple.discountPercentage,
+      discountAmount: null,
+      minimumPurchase: null,
+      startDate: simple.validFrom,
+      endDate: simple.validUntil,
+      applicableItems: const [],
+      applicableCategories: const [],
+      maxUses: null,
+      currentUses: 0,
+      daysOfWeek: const [],
+      startTime: null,
+      endTime: null,
+      requiresCode: false,
+      promotionCode: null,
+      createdAt: simple.createdAt,
+      updatedAt: simple.updatedAt,
+    );
+  }
+
   void _showDeleteConfirmation(Promotion promotion) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar Promoción'),
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: primaryDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: accentAmber.withOpacity(0.2),
+          ),
+        ),
+        title: const Text(
+          'Eliminar Promoción',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: Text(
           '¿Estás seguro de que deseas eliminar la promoción "${promotion.title}"? Esta acción no se puede deshacer.',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.8),
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              
-              try {
-                await ref
-                    .read(promotionsControllerProvider.notifier)
-                    .deletePromotion(promotion.id);
-
-                if (mounted) {
-                  context.showSuccessSnackBar('Promoción eliminada exitosamente');
-                }
-              } catch (e) {
-                if (mounted) {
-                  context.showErrorSnackBar('Error al eliminar promoción');
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+              ),
             ),
-            child: const Text('Eliminar'),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () async {
+                  Navigator.of(dialogContext).pop();
+
+                  try {
+                    await ref
+                        .read(promotionsControllerProvider.notifier)
+                        .deletePromotion(promotion.id);
+
+                    if (mounted) {
+                      context.showSuccessSnackBar('Promoción eliminada exitosamente');
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      context.showErrorSnackBar('Error al eliminar promoción');
+                    }
+                  }
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    'Eliminar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
