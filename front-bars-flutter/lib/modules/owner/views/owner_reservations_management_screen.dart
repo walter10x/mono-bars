@@ -5,6 +5,7 @@ import 'package:front_bars_flutter/modules/reservations/models/reservation_model
 import 'package:intl/intl.dart';
 
 /// Pantalla para que los owners gestionen las reservas de sus bares
+/// Rediseñada con tema oscuro premium
 class OwnerReservationsManagementScreen extends ConsumerStatefulWidget {
   const OwnerReservationsManagementScreen({super.key});
 
@@ -15,6 +16,16 @@ class OwnerReservationsManagementScreen extends ConsumerStatefulWidget {
 
 class _OwnerReservationsManagementScreenState
     extends ConsumerState<OwnerReservationsManagementScreen> {
+  // Colores del tema oscuro premium
+  static const backgroundColor = Color(0xFF0F0F1E);
+  static const primaryDark = Color(0xFF1A1A2E);
+  static const secondaryDark = Color(0xFF16213E);
+  static const accentAmber = Color(0xFFFFA500);
+  static const accentGold = Color(0xFFFFB84D);
+  
+  // Color accent para reservas (púrpura)
+  static const reservationAccent = Color(0xFF8B5CF6);
+
   String _selectedFilter = 'all'; // all, pending, confirmed, completed
 
   @override
@@ -31,38 +42,142 @@ class _OwnerReservationsManagementScreenState
     final filteredReservations = _getFilteredReservations(reservationsState.reservations);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: const Text('Gestión de Reservas'),
-        backgroundColor: const Color(0xFF6366F1),
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
-        children: [
-          // Filtros
-          _buildFilterChips(),
-          
-          // Lista de reservas
-          Expanded(
-            child: reservationsState.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredReservations.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: () async {
-                          await ref
-                              .read(reservationsControllerProvider.notifier)
-                              .loadOwnerReservations();
-                        },
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: filteredReservations.length,
-                          itemBuilder: (context, index) {
-                            final reservation = filteredReservations[index];
-                            return _buildReservationCard(reservation);
+      backgroundColor: backgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header con estilo premium
+            _buildHeader(filteredReservations.length),
+
+            // Filtros
+            _buildFilterChips(),
+
+            // Lista de reservas
+            Expanded(
+              child: reservationsState.isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(color: accentAmber),
+                    )
+                  : filteredReservations.isEmpty
+                      ? _buildEmptyState()
+                      : RefreshIndicator(
+                          onRefresh: () async {
+                            await ref
+                                .read(reservationsControllerProvider.notifier)
+                                .loadOwnerReservations();
                           },
+                          color: accentAmber,
+                          backgroundColor: primaryDark,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            itemCount: filteredReservations.length,
+                            itemBuilder: (context, index) {
+                              final reservation = filteredReservations[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _buildReservationCard(reservation),
+                              );
+                            },
+                          ),
+                        ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(int count) {
+    return Container(
+      margin: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primaryDark,
+            secondaryDark,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: accentAmber.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accentAmber.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: reservationAccent.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.calendar_month,
+              color: reservationAccent,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [accentAmber, accentGold],
+                  ).createShader(bounds),
+                  child: const Text(
+                    'Gestión de Reservas',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: reservationAccent.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: reservationAccent,
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      count == 1 ? 'reserva' : 'reservas',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -84,37 +199,68 @@ class _OwnerReservationsManagementScreenState
 
   Widget _buildFilterChips() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            _buildFilterChip('Todas', 'all'),
-            const SizedBox(width: 8),
-            _buildFilterChip('Pendientes', 'pending'),
-            const SizedBox(width: 8),
-            _buildFilterChip('Confirmadas', 'confirmed'),
-            const SizedBox(width: 8),
-            _buildFilterChip('Completadas', 'completed'),
+            _buildFilterChip('Todas', 'all', Icons.list),
+            const SizedBox(width: 10),
+            _buildFilterChip('Pendientes', 'pending', Icons.schedule),
+            const SizedBox(width: 10),
+            _buildFilterChip('Confirmadas', 'confirmed', Icons.check_circle),
+            const SizedBox(width: 10),
+            _buildFilterChip('Completadas', 'completed', Icons.done_all),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
+  Widget _buildFilterChip(String label, String value, IconData icon) {
     final isSelected = _selectedFilter == value;
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        setState(() {
-          _selectedFilter = value;
-        });
-      },
-      selectedColor: const Color(0xFF6366F1).withOpacity(0.2),
-      checkmarkColor: const Color(0xFF6366F1),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedFilter = value;
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? const LinearGradient(colors: [accentAmber, accentGold])
+                : null,
+            color: isSelected ? null : primaryDark,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? Colors.transparent : accentAmber.withOpacity(0.2),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected ? Colors.black : Colors.white.withOpacity(0.7),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.black : Colors.white.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -123,18 +269,33 @@ class _OwnerReservationsManagementScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.event_busy,
-            size: 80,
-            color: Colors.grey[400],
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: reservationAccent.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.event_busy,
+              size: 80,
+              color: reservationAccent.withOpacity(0.6),
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(
+          const SizedBox(height: 24),
+          const Text(
             'No hay reservas',
             style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Las reservas de tus bares aparecerán aquí',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.6),
             ),
           ),
         ],
@@ -147,118 +308,143 @@ class _OwnerReservationsManagementScreenState
     final userName = reservation.user?['fullName'] ?? 'Cliente';
     final userPhone = reservation.user?['phone'] ?? reservation.customerPhone;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: primaryDark,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: accentAmber.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        barName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        userName,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                _buildStatusBadge(reservation.status),
-              ],
-            ),
-
-            const Divider(height: 24),
-
-            // Detalles de la reserva
-            Row(
-              children: [
-                Expanded(
-                  child: _buildInfoRow(
-                    Icons.calendar_today,
-                    DateFormat('dd MMM yyyy', 'es')
-                        .format(reservation.reservationDate),
-                  ),
-                ),
-                Expanded(
-                  child: _buildInfoRow(
-                    Icons.access_time,
-                    DateFormat('HH:mm').format(reservation.reservationDate),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildInfoRow(
-                    Icons.people,
-                    '${reservation.numberOfPeople} ${reservation.numberOfPeople == 1 ? 'persona' : 'personas'}',
-                  ),
-                ),
-                Expanded(
-                  child: _buildInfoRow(
-                    Icons.phone,
-                    userPhone,
-                  ),
-                ),
-              ],
-            ),
-
-            if (reservation.comments != null && reservation.comments!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.comment, size: 16, color: Colors.grey[600]),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        reservation.comments!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[700],
-                        ),
+                    Text(
+                      barName,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person,
+                          size: 14,
+                          color: Colors.white.withOpacity(0.5),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          userName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
+              _buildStatusBadge(reservation.status),
             ],
+          ),
 
-            // Botones de acción
-            const SizedBox(height: 16),
-            _buildActionButtons(reservation),
+          Divider(
+            height: 24,
+            color: Colors.white.withOpacity(0.1),
+          ),
+
+          // Detalles de la reserva
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoRow(
+                  Icons.calendar_today,
+                  DateFormat('dd MMM yyyy', 'es')
+                      .format(reservation.reservationDate),
+                ),
+              ),
+              Expanded(
+                child: _buildInfoRow(
+                  Icons.access_time,
+                  DateFormat('HH:mm').format(reservation.reservationDate),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoRow(
+                  Icons.people,
+                  '${reservation.numberOfPeople} ${reservation.numberOfPeople == 1 ? 'persona' : 'personas'}',
+                ),
+              ),
+              Expanded(
+                child: _buildInfoRow(
+                  Icons.phone,
+                  userPhone,
+                ),
+              ),
+            ],
+          ),
+
+          if (reservation.comments != null && reservation.comments!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: secondaryDark,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.comment,
+                    size: 16,
+                    color: Colors.white.withOpacity(0.5),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      reservation.comments!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
-        ),
+
+          // Botones de acción
+          const SizedBox(height: 16),
+          _buildActionButtons(reservation),
+        ],
       ),
     );
   }
@@ -268,35 +454,115 @@ class _OwnerReservationsManagementScreenState
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (reservation.status.isPending) ...[
-          OutlinedButton.icon(
-            onPressed: () => _showRejectDialog(reservation.id),
-            icon: const Icon(Icons.close, size: 18),
-            label: const Text('Rechazar'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+          _buildActionButton(
+            icon: Icons.close,
+            label: 'Rechazar',
+            color: const Color(0xFFEF4444),
+            onTap: () => _showRejectDialog(reservation.id),
           ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
-            onPressed: () => _confirmReservation(reservation.id),
-            icon: const Icon(Icons.check, size: 18),
-            label: const Text('Confirmar'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
-            ),
+          const SizedBox(width: 10),
+          _buildPrimaryActionButton(
+            icon: Icons.check,
+            label: 'Confirmar',
+            color: const Color(0xFF10B981),
+            onTap: () => _confirmReservation(reservation.id),
           ),
         ],
         if (reservation.status.isConfirmed) ...[
-          ElevatedButton.icon(
-            onPressed: () => _completeReservation(reservation.id),
-            icon: const Icon(Icons.done_all, size: 18),
-            label: const Text('Completar'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
-            ),
+          _buildPrimaryActionButton(
+            icon: Icons.done_all,
+            label: 'Completar',
+            color: reservationAccent,
+            onTap: () => _completeReservation(reservation.id),
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: color.withOpacity(0.3),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrimaryActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color, color.withOpacity(0.8)],
+            ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: Colors.white),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -306,19 +572,19 @@ class _OwnerReservationsManagementScreenState
 
     switch (status) {
       case ReservationStatus.pending:
-        color = Colors.orange;
+        color = accentAmber;
         icon = Icons.schedule;
         break;
       case ReservationStatus.confirmed:
-        color = Colors.green;
+        color = const Color(0xFF10B981);
         icon = Icons.check_circle;
         break;
       case ReservationStatus.cancelled:
-        color = Colors.red;
+        color = const Color(0xFFEF4444);
         icon = Icons.cancel;
         break;
       case ReservationStatus.completed:
-        color = Colors.blue;
+        color = reservationAccent;
         icon = Icons.done_all;
         break;
     }
@@ -326,13 +592,16 @@ class _OwnerReservationsManagementScreenState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: color),
+          Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             status.displayName,
@@ -350,14 +619,18 @@ class _OwnerReservationsManagementScreenState
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
-        const SizedBox(width: 8),
+        Icon(
+          icon,
+          size: 14,
+          color: Colors.white.withOpacity(0.5),
+        ),
+        const SizedBox(width: 6),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey[700],
+              color: Colors.white.withOpacity(0.7),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -374,9 +647,13 @@ class _OwnerReservationsManagementScreenState
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Reserva confirmada exitosamente'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text('Reserva confirmada exitosamente'),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -389,9 +666,13 @@ class _OwnerReservationsManagementScreenState
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Reserva completada exitosamente'),
-          backgroundColor: Colors.blue,
+        SnackBar(
+          content: const Text('Reserva completada exitosamente'),
+          backgroundColor: reservationAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -400,36 +681,79 @@ class _OwnerReservationsManagementScreenState
   void _showRejectDialog(String reservationId) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rechazar Reserva'),
-        content: const Text(
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: primaryDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: accentAmber.withOpacity(0.2),
+          ),
+        ),
+        title: const Text(
+          'Rechazar Reserva',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
           '¿Estás seguro de que deseas rechazar esta reserva?',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.8),
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final success = await ref
-                  .read(reservationsControllerProvider.notifier)
-                  .cancelReservation(reservationId);
-
-              if (success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Reserva rechazada'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+              ),
             ),
-            child: const Text('Rechazar'),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () async {
+                  Navigator.pop(dialogContext);
+                  final success = await ref
+                      .read(reservationsControllerProvider.notifier)
+                      .cancelReservation(reservationId);
+
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Reserva rechazada'),
+                        backgroundColor: const Color(0xFFEF4444),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    'Rechazar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
