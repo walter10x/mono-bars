@@ -10,6 +10,7 @@ API REST para la aplicación TourBar, desarrollada con NestJS y MongoDB. Gestion
 - **JWT** - Autenticación con tokens
 - **Passport** - Estrategias de autenticación
 - **Multer** - Subida de archivos/imágenes
+- **Resend** - Servicio de envío de emails
 
 ## 📦 Instalación
 
@@ -31,10 +32,15 @@ npm run start:prod
 ## 🔧 Variables de Entorno
 
 ```env
+# Base de datos y servidor
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/tourbar
 JWT_SECRET=tu_secreto_jwt
-JWT_REFRESH_SECRET=tu_secreto_refresh
+
+# Email (Resend - para recuperación de contraseña)
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_FROM_EMAIL=onboarding@resend.dev
+FRONTEND_URL=http://localhost:3000
 ```
 
 ## 📁 Estructura del Proyecto
@@ -79,8 +85,9 @@ src/
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | POST | `/auth/login` | Iniciar sesión |
-| POST | `/auth/refresh` | Renovar token |
 | POST | `/auth/logout` | Cerrar sesión |
+| POST | `/auth/request-reset` | Solicitar recuperación de contraseña |
+| POST | `/auth/reset-password` | Restablecer contraseña con token |
 | GET | `/auth/me` | Usuario actual |
 | GET | `/auth/verify` | Verificar token |
 
@@ -165,12 +172,14 @@ npm run test:cov
 
 ## 📝 Características Recientes
 
+- ✅ **Recuperación de contraseña** con email (Resend)
 - ✅ Búsqueda de bares por nombre, ubicación y descripción
 - ✅ Gestión de promociones con fechas de validez
 - ✅ Subida de fotos para bares y promociones
 - ✅ Sistema de roles (client/owner/admin)
 - ✅ Autenticación JWT con refresh tokens
 - ✅ Sistema de reseñas y calificación de bares
+- ✅ Sistema de favoritos
 
 ---
 
