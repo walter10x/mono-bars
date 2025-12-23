@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:front_bars_flutter/core/utils/extensions.dart';
-import 'package:front_bars_flutter/shared/widgets/custom_button.dart';
-import 'package:front_bars_flutter/shared/widgets/custom_text_field.dart';
 import 'package:front_bars_flutter/shared/widgets/image_picker_widget.dart';
 import 'package:front_bars_flutter/shared/widgets/loading_overlay.dart';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
@@ -13,6 +11,7 @@ import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
 import 'package:front_bars_flutter/core/services/image_upload_service.dart';
 
 /// Pantalla para crear o editar un bar
+/// Rediseñada con tema oscuro premium
 class BarFormScreen extends ConsumerStatefulWidget {
   final String? barId; // null = crear, non-null = editar
 
@@ -26,8 +25,15 @@ class BarFormScreen extends ConsumerStatefulWidget {
 }
 
 class _BarFormScreenState extends ConsumerState<BarFormScreen> {
+  // Colores del tema oscuro premium
+  static const backgroundColor = Color(0xFF0F0F1E);
+  static const primaryDark = Color(0xFF1A1A2E);
+  static const secondaryDark = Color(0xFF16213E);
+  static const accentAmber = Color(0xFFFFA500);
+  static const accentGold = Color(0xFFFFB84D);
+
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controllers
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
@@ -57,19 +63,18 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
   void initState() {
     super.initState();
     _isEditMode = widget.barId != null;
-    
+
     if (_isEditMode) {
-      // Cargar datos del bar para editar
       Future.microtask(() => _loadBarData());
     }
   }
 
   Future<void> _loadBarData() async {
     if (widget.barId == null) return;
-    
+
     await ref.read(barsControllerProvider.notifier).loadBar(widget.barId!);
     final barsState = ref.read(barsControllerProvider);
-    
+
     if (barsState.selectedBar != null) {
       _currentBar = barsState.selectedBar;
       _populateForm(_currentBar!);
@@ -85,7 +90,6 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
     _instagramController.text = bar.socialLinks?.instagram ?? '';
     _photoController.text = bar.photo ?? '';
 
-    // Cargar horarios
     if (bar.hours != null) {
       setState(() {
         _hours['monday'] = bar.hours!.monday;
@@ -116,21 +120,18 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
 
     setState(() => _isUploading = true);
 
-    // Crear social links
     SocialLinks? socialLinks;
     if (_facebookController.text.isNotEmpty ||
         _instagramController.text.isNotEmpty) {
       socialLinks = SocialLinks(
-        facebook: _facebookController.text.isEmpty
-            ? null
-            : _facebookController.text,
+        facebook:
+            _facebookController.text.isEmpty ? null : _facebookController.text,
         instagram: _instagramController.text.isEmpty
             ? null
             : _instagramController.text,
       );
     }
 
-    // Crear horarios
     WeekHours? weekHours;
     if (_hours.values.any((h) => h != null)) {
       weekHours = WeekHours(
@@ -147,7 +148,6 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
     bool success = false;
 
     if (_isEditMode) {
-      // Actualizar bar
       final request = UpdateBarRequest(
         nameBar: _nameController.text.trim(),
         location: _locationController.text.trim(),
@@ -168,7 +168,6 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
           .read(barsControllerProvider.notifier)
           .updateBar(widget.barId!, request);
 
-      // Si se actualizó y hay imagen nueva, subirla
       if (success && _selectedImage != null && widget.barId != null) {
         await _uploadImage(widget.barId!);
       }
@@ -178,7 +177,6 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
         context.pop();
       }
     } else {
-      // Crear bar
       final request = CreateBarRequest(
         nameBar: _nameController.text.trim(),
         location: _locationController.text.trim(),
@@ -195,11 +193,9 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
         hours: weekHours,
       );
 
-      success = await ref
-          .read(barsControllerProvider.notifier)
-          .createBar(request);
+      success =
+          await ref.read(barsControllerProvider.notifier).createBar(request);
 
-      // Si se creó y hay imagen seleccionada, obtener el ID del bar y subir imagen
       if (success && _selectedImage != null) {
         final createdBar = ref.read(barsControllerProvider).bars.lastOrNull;
         if (createdBar != null) {
@@ -226,7 +222,7 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
     try {
       final uploadService = ref.read(imageUploadServiceProvider);
       await uploadService.uploadBarImage(barId, _selectedImage!);
-      
+
       if (mounted) {
         context.showSuccessSnackBar('Foto subida exitosamente');
       }
@@ -240,9 +236,9 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
   @override
   Widget build(BuildContext context) {
     final barsState = ref.watch(barsControllerProvider);
-    final isLoading = _isEditMode ? barsState.isUpdating : barsState.isCreating;
+    final isLoading =
+        _isEditMode ? barsState.isUpdating : barsState.isCreating;
 
-    // Listener para errores
     ref.listen(barsControllerProvider, (previous, current) {
       if (current.hasError) {
         context.showErrorSnackBar(current.errorMessage!);
@@ -253,184 +249,230 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
     return LoadingOverlay(
       isLoading: isLoading || _isUploading,
       child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text(_isEditMode ? 'Editar Bar' : 'Crear Nuevo Bar'),
-          backgroundColor: const Color(0xFF6366F1),
-          foregroundColor: Colors.white,
-          elevation: 0,
+        backgroundColor: backgroundColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              _buildHeader(),
+
+              // Form content
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+
+                        // Información básica
+                        _buildSectionTitle(
+                            'Información Básica', Icons.info_outline),
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          controller: _nameController,
+                          label: 'Nombre del Bar',
+                          hint: 'Ej: El Rincón del Jazz',
+                          icon: Icons.storefront,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El nombre es requerido';
+                            }
+                            if (value.length < 3) {
+                              return 'El nombre debe tener al menos 3 caracteres';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          controller: _locationController,
+                          label: 'Ubicación',
+                          hint: 'Ej: Calle Mayor 45, Madrid',
+                          icon: Icons.location_on,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'La ubicación es requerida';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          controller: _descriptionController,
+                          label: 'Descripción',
+                          hint: 'Describe tu bar...',
+                          icon: Icons.description,
+                          maxLines: 3,
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Contacto
+                        _buildSectionTitle(
+                            'Información de Contacto', Icons.contact_phone),
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          controller: _phoneController,
+                          label: 'Teléfono',
+                          hint: '+34 123 456 789',
+                          icon: Icons.phone,
+                          keyboardType: TextInputType.phone,
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Redes sociales
+                        _buildSectionTitle('Redes Sociales', Icons.share),
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          controller: _facebookController,
+                          label: 'Facebook',
+                          hint: 'URL de tu página de Facebook',
+                          icon: Icons.facebook,
+                          keyboardType: TextInputType.url,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        _buildTextField(
+                          controller: _instagramController,
+                          label: 'Instagram',
+                          hint: 'URL de tu perfil de Instagram',
+                          icon: Icons.camera_alt,
+                          keyboardType: TextInputType.url,
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Foto
+                        _buildSectionTitle('Foto del Bar', Icons.image),
+                        const SizedBox(height: 16),
+
+                        ImagePickerWidget(
+                          initialImageUrl: _photoController.text.isNotEmpty
+                              ? _photoController.text
+                              : null,
+                          label: 'Foto del Bar',
+                          onImageSelected: (file) {
+                            setState(() {
+                              _selectedImage = file;
+                            });
+                          },
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Horarios
+                        _buildHoursSection(),
+
+                        const SizedBox(height: 32),
+
+                        // Botones de acción
+                        _buildActionButtons(isLoading),
+
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      margin: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primaryDark,
+            secondaryDark,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: accentAmber.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accentAmber.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Back button
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.pop(),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: accentAmber.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.arrow_back,
+                  color: accentAmber,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Información básica
-                _buildSectionTitle('Información Básica', Icons.info_outline),
-                const SizedBox(height: 16),
-                
-                CustomTextField(
-                  controller: _nameController,
-                  label: 'Nombre del Bar',
-                  hint: 'Ej: El Rincón del Jazz',
-                  prefixIcon: Icons.storefront,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El nombre es requerido';
-                    }
-                    if (value.length < 3) {
-                      return 'El nombre debe tener al menos 3 caracteres';
-                    }
-                    if (value.length > 100) {
-                      return 'El nombre no puede tener más de 100 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 16),
-                
-                CustomTextField(
-                  controller: _locationController,
-                  label: 'Ubicación',
-                  hint: 'Ej: Calle Mayor 45, Madrid',
-                  prefixIcon: Icons.location_on,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'La ubicación es requerida';
-                    }
-                    if (value.length < 5) {
-                      return 'La ubicación debe ser más específica';
-                    }
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 16),
-                
-                CustomTextField(
-                  controller: _descriptionController,
-                  label: 'Descripción',
-                  hint: 'Describe tu bar...',
-                  prefixIcon: Icons.description,
-                  textInputAction: TextInputAction.next,
-                  maxLines: 3,
-                  validator: (value) {
-                    if (value != null && value.length > 500) {
-                      return 'La descripción no puede tener más de 500 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Contacto
-                _buildSectionTitle('Información de Contacto', Icons.contact_phone),
-                const SizedBox(height: 16),
-                
-                CustomTextField(
-                  controller: _phoneController,
-                  label: 'Teléfono',
-                  hint: '+34 123 456 789',
-                  prefixIcon: Icons.phone,
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      if (value.length < 9) {
-                        return 'Ingresa un teléfono válido';
-                      }
-                    }
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Redes sociales
-                _buildSectionTitle('Redes Sociales', Icons.share),
-                const SizedBox(height: 16),
-                
-                CustomTextField(
-                  controller: _facebookController,
-                  label: 'Facebook',
-                  hint: 'URL de tu página de Facebook',
-                  prefixIcon: Icons.facebook,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.next,
-                ),
-                
-                const SizedBox(height: 16),
-                
-                CustomTextField(
-                  controller: _instagramController,
-                  label: 'Instagram',
-                  hint: 'URL de tu perfil de Instagram',
-                  prefixIcon: Icons.camera_alt,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.next,
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Foto
-                _buildSectionTitle('Foto del Bar', Icons.image),
-                const SizedBox(height: 16),
-                
-                ImagePickerWidget(
-                  initialImageUrl: _photoController.text.isNotEmpty 
-                      ? _photoController.text 
-                      : null,
-                  label: 'Foto del Bar',
-                  onImageSelected: (file) {
-                    setState(() {
-                      _selectedImage = file;
-                    });
-                  },
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Horarios (collapsed por defecto)
-                _buildHoursSection(),
-                
-                const SizedBox(height: 32),
-                
-                // Botones de acción
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => context.pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: Colors.grey),
-                        ),
-                        child: const Text('Cancelar'),
-                      ),
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [accentAmber, accentGold],
+                  ).createShader(bounds),
+                  child: Text(
+                    _isEditMode ? 'Editar Bar' : 'Crear Nuevo Bar',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 2,
-                      child: CustomButton(
-                        onPressed: _handleSubmit,
-                        text: _isEditMode ? 'Actualizar Bar' : 'Crear Bar',
-                        isLoading: isLoading,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                
-                const SizedBox(height: 32),
+                const SizedBox(height: 4),
+                Text(
+                  _isEditMode
+                      ? 'Actualiza la información de tu bar'
+                      : 'Completa los datos de tu nuevo bar',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.6),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -438,18 +480,100 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: const Color(0xFF6366F1),
-          size: 24,
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: accentAmber.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: accentAmber,
+            size: 20,
+          ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         Text(
           title,
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1F2937),
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.8),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          style: const TextStyle(color: Colors.white),
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+            prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.5)),
+            filled: true,
+            fillColor: primaryDark,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: accentAmber.withOpacity(0.2),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: accentAmber.withOpacity(0.2),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: accentAmber,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
           ),
         ),
       ],
@@ -457,35 +581,67 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
   }
 
   Widget _buildHoursSection() {
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      title: Row(
-        children: [
-          const Icon(
-            Icons.access_time,
-            color: Color(0xFF6366F1),
-            size: 24,
+    return Container(
+      decoration: BoxDecoration(
+        color: primaryDark,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: accentAmber.withOpacity(0.2),
+        ),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
+        ),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          iconColor: accentAmber,
+          collapsedIconColor: Colors.white.withOpacity(0.5),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentAmber.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.access_time,
+                  color: accentAmber,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Horarios de Apertura',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          const Text(
-            'Horarios de Apertura',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(left: 44, top: 4),
+            child: Text(
+              'Opcional - Expande para configurar',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withOpacity(0.5),
+              ),
             ),
           ),
-        ],
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: _buildDayHoursFields(),
+              ),
+            ),
+          ],
+        ),
       ),
-      subtitle: const Text(
-        'Opcional - Expande para configurar',
-        style: TextStyle(fontSize: 12),
-      ),
-      children: [
-        const SizedBox(height: 16),
-        ..._buildDayHoursFields(),
-        const SizedBox(height: 16),
-      ],
     );
   }
 
@@ -510,14 +666,14 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
 
   Widget _buildDayHourRow(String dayKey, String dayName) {
     final isActive = _hours[dayKey] != null;
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
+        color: secondaryDark,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isActive ? const Color(0xFF6366F1) : Colors.grey.shade300,
+          color: isActive ? accentAmber.withOpacity(0.5) : Colors.transparent,
         ),
       ),
       child: Column(
@@ -531,7 +687,7 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: isActive ? const Color(0xFF1F2937) : Colors.grey.shade600,
+                  color: isActive ? Colors.white : Colors.white.withOpacity(0.5),
                 ),
               ),
               Switch(
@@ -539,13 +695,15 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
                 onChanged: (value) {
                   setState(() {
                     if (value) {
-                      _hours[dayKey] = const DayHours(open: '09:00', close: '22:00');
+                      _hours[dayKey] =
+                          const DayHours(open: '09:00', close: '22:00');
                     } else {
                       _hours[dayKey] = null;
                     }
                   });
                 },
-                activeColor: const Color(0xFF6366F1),
+                activeColor: accentAmber,
+                activeTrackColor: accentAmber.withOpacity(0.3),
               ),
             ],
           ),
@@ -596,7 +754,7 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
     required Function(String) onChanged,
   }) {
     final controller = TextEditingController(text: initialValue);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -604,25 +762,120 @@ class _BarFormScreenState extends ConsumerState<BarFormScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey.shade700,
+            color: Colors.white.withOpacity(0.6),
             fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 4),
         TextField(
           controller: controller,
+          style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: 'HH:MM',
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
-              vertical: 8,
+              vertical: 10,
             ),
+            filled: true,
+            fillColor: primaryDark,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: accentAmber.withOpacity(0.3)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: accentAmber.withOpacity(0.3)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: accentAmber),
             ),
           ),
           keyboardType: TextInputType.datetime,
           onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(bool isLoading) {
+    return Row(
+      children: [
+        Expanded(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.pop(),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: primaryDark,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 2,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isLoading ? null : _handleSubmit,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [accentAmber, accentGold],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentAmber.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          _isEditMode ? 'Actualizar Bar' : 'Crear Bar',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     );

@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:front_bars_flutter/core/utils/extensions.dart';
-import 'package:front_bars_flutter/shared/widgets/custom_button.dart';
-import 'package:front_bars_flutter/shared/widgets/custom_text_field.dart';
 import 'package:front_bars_flutter/shared/widgets/image_picker_widget.dart';
 import 'package:front_bars_flutter/shared/widgets/loading_overlay.dart';
 import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart';
@@ -15,9 +13,10 @@ import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
 import 'package:front_bars_flutter/core/services/image_upload_service.dart';
 
 /// Pantalla para crear o editar un menú
+/// Rediseñada con tema oscuro premium
 class MenuFormScreen extends ConsumerStatefulWidget {
-  final String? barId; // Bar pre-seleccionado (opcional)
-  final String? menuId; // null = crear, non-null = editar
+  final String? barId;
+  final String? menuId;
 
   const MenuFormScreen({
     super.key,
@@ -30,19 +29,24 @@ class MenuFormScreen extends ConsumerStatefulWidget {
 }
 
 class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
+  // Colores del tema oscuro premium
+  static const backgroundColor = Color(0xFF0F0F1E);
+  static const primaryDark = Color(0xFF1A1A2E);
+  static const secondaryDark = Color(0xFF16213E);
+  static const accentAmber = Color(0xFFFFA500);
+  static const accentGold = Color(0xFFFFB84D);
+
   final _formKey = GlobalKey<FormState>();
-  
-  // Controllers
+
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _photoController = TextEditingController();
 
-  // Lista dinámica de items
   final List<MenuItemForm> _items = [];
 
   String? _selectedBarId;
   bool _isEditMode = false;
-  File? _selectedImage; // Imagen seleccionada para subir
+  File? _selectedImage;
   bool _isUploading = false;
 
   @override
@@ -50,11 +54,9 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
     super.initState();
     _selectedBarId = widget.barId;
     _isEditMode = widget.menuId != null;
-    
-    // Cargar bares si no hay uno pre-seleccionado
+
     Future.microtask(() {
       ref.read(barsControllerProvider.notifier).loadMyBars();
-      
       if (_isEditMode) {
         _loadMenuData();
       }
@@ -63,10 +65,10 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
 
   Future<void> _loadMenuData() async {
     if (widget.menuId == null) return;
-    
+
     await ref.read(menusControllerProvider.notifier).loadMenu(widget.menuId!);
     final menusState = ref.read(menusControllerProvider);
-    
+
     if (menusState.selectedMenu != null) {
       final menu = menusState.selectedMenu!;
       _populateForm(menu);
@@ -79,7 +81,6 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
     _photoController.text = menu.photoUrl ?? '';
     _selectedBarId = menu.barId;
 
-    // Cargar items
     setState(() {
       _items.clear();
       for (final item in menu.items) {
@@ -93,7 +94,6 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _photoController.dispose();
-    // Dispose de controllers de items
     for (final item in _items) {
       item.dispose();
     }
@@ -110,7 +110,6 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
 
     setState(() => _isUploading = true);
 
-    // Convertir items del formulario a MenuItem
     final items = _items
         .map((itemForm) => MenuItem(
               name: itemForm.nameController.text.trim(),
@@ -127,7 +126,6 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
     bool success = false;
 
     if (_isEditMode) {
-      // Actualizar menú
       final request = UpdateMenuRequest(
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim().isEmpty
@@ -143,7 +141,6 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
           .read(menusControllerProvider.notifier)
           .updateMenu(widget.menuId!, request);
 
-      // Si se actualizó y hay imagen nueva, subirla
       if (success && _selectedImage != null && widget.menuId != null) {
         await _uploadImage(widget.menuId!);
       }
@@ -153,7 +150,6 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
         context.pop();
       }
     } else {
-      // Crear menú
       final request = CreateMenuRequest(
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim().isEmpty
@@ -166,12 +162,9 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
         items: items.isEmpty ? null : items,
       );
 
+      success =
+          await ref.read(menusControllerProvider.notifier).createMenu(request);
 
-      success = await ref
-          .read(menusControllerProvider.notifier)
-          .createMenu(request);
-
-      // Si se creó y hay imagen seleccionada, obtener el ID del menú y subir imagen
       if (success && _selectedImage != null) {
         final createdMenu = ref.read(menusControllerProvider).menus.lastOrNull;
         if (createdMenu != null) {
@@ -198,7 +191,7 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
     try {
       final uploadService = ref.read(imageUploadServiceProvider);
       await uploadService.uploadMenuImage(menuId, _selectedImage!);
-      
+
       if (mounted) {
         context.showSuccessSnackBar('Foto subida exitosamente');
       }
@@ -226,9 +219,9 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
   Widget build(BuildContext context) {
     final menusState = ref.watch(menusControllerProvider);
     final barsState = ref.watch(barsControllerProvider);
-    final isLoading = _isEditMode ? menusState.isUpdating : menusState.isCreating;
+    final isLoading =
+        _isEditMode ? menusState.isUpdating : menusState.isCreating;
 
-    // Listener para errores
     ref.listen(menusControllerProvider, (previous, current) {
       if (current.hasError) {
         context.showErrorSnackBar(current.errorMessage!);
@@ -239,177 +232,168 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
     return LoadingOverlay(
       isLoading: isLoading || _isUploading,
       child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text(_isEditMode ? 'Editar Menú' : 'Crear Nuevo Menú'),
-          backgroundColor: const Color(0xFF6366F1),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Información básica
-                _buildSectionTitle('Información Básica', Icons.info_outline),
-                const SizedBox(height: 16),
-                
-                CustomTextField(
-                  controller: _nameController,
-                  label: 'Nombre del Menú',
-                  hint: 'Ej: Carta de Bebidas',
-                  prefixIcon: Icons.restaurant_menu,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El nombre es requerido';
-                    }
-                    if (value.length < 3) {
-                      return 'El nombre debe tener al menos 3 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 16),
-
-                // Selector de Bar (solo si no está pre-seleccionado)
-                if (widget.barId == null && barsState.status == BarsStatus.loaded)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Bar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+        backgroundColor: backgroundColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        _buildSectionTitle(
+                            'Información Básica', Icons.info_outline),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _nameController,
+                          label: 'Nombre del Menú',
+                          hint: 'Ej: Carta de Bebidas',
+                          icon: Icons.restaurant_menu,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El nombre es requerido';
+                            }
+                            if (value.length < 3) {
+                              return 'El nombre debe tener al menos 3 caracteres';
+                            }
+                            return null;
+                          },
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 16),
+                        if (widget.barId == null &&
+                            barsState.status == BarsStatus.loaded)
+                          _buildBarSelector(barsState),
+                        _buildTextField(
+                          controller: _descriptionController,
+                          label: 'Descripción',
+                          hint: 'Describe el menú...',
+                          icon: Icons.description,
+                          maxLines: 3,
                         ),
-                        child: DropdownButton<String>(
-                          value: _selectedBarId,
-                          hint: const Text('Selecciona un bar'),
-                          isExpanded: true,
-                          underline: const SizedBox(),
-                          items: barsState.bars.map((bar) {
-                            return DropdownMenuItem(
-                              value: bar.id,
-                              child: Text(bar.nameBar),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
+                        const SizedBox(height: 32),
+                        _buildSectionTitle('Foto del Menú', Icons.image),
+                        const SizedBox(height: 16),
+                        ImagePickerWidget(
+                          initialImageUrl: _photoController.text.isNotEmpty
+                              ? _photoController.text
+                              : null,
+                          label: 'Foto del Menú',
+                          onImageSelected: (file) {
                             setState(() {
-                              _selectedBarId = value;
+                              _selectedImage = file;
                             });
                           },
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                
-                CustomTextField(
-                  controller: _descriptionController,
-                  label: 'Descripción',
-                  hint: 'Describe el menú...',
-                  prefixIcon: Icons.description,
-                  textInputAction: TextInputAction.next,
-                  maxLines: 3,
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Foto
-                _buildSectionTitle('Foto del Menú', Icons.image),
-                const SizedBox(height: 16),
-                
-                ImagePickerWidget(
-                  initialImageUrl: _photoController.text.isNotEmpty 
-                      ? _photoController.text 
-                      : null,
-                  label: 'Foto del Menú',
-                  onImageSelected: (file) {
-                    setState(() {
-                      _selectedImage = file;
-                    });
-                  },
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Items del menú
-                _buildSectionTitle('Productos del Menú', Icons.inventory_2),
-                const SizedBox(height: 8),
-                Text(
-                  'Agrega los productos que incluye este menú',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                ..._items.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildItemEditor(item, index),
-                  );
-                }).toList(),
-                
-                OutlinedButton.icon(
-                  onPressed: _addItem,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Agregar Producto'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF6366F1),
-                    side: const BorderSide(color: Color(0xFF6366F1)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Botones de acción
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => context.pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: Colors.grey),
+                        const SizedBox(height: 32),
+                        _buildSectionTitle(
+                            'Productos del Menú', Icons.inventory_2),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Agrega los productos que incluye este menú',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
                         ),
-                        child: const Text('Cancelar'),
-                      ),
+                        const SizedBox(height: 16),
+                        ..._items.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final item = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildItemEditor(item, index),
+                          );
+                        }),
+                        _buildAddProductButton(),
+                        const SizedBox(height: 32),
+                        _buildActionButtons(isLoading),
+                        const SizedBox(height: 32),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 2,
-                      child: CustomButton(
-                        onPressed: _handleSubmit,
-                        text: _isEditMode ? 'Actualizar Menú' : 'Crear Menú',
-                        isLoading: isLoading,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                
-                const SizedBox(height: 32),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      margin: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [primaryDark, secondaryDark],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: accentAmber.withOpacity(0.2), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: accentAmber.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.pop(),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: accentAmber.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.arrow_back, color: accentAmber, size: 20),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [accentAmber, accentGold],
+                  ).createShader(bounds),
+                  child: Text(
+                    _isEditMode ? 'Editar Menú' : 'Crear Nuevo Menú',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _isEditMode
+                      ? 'Actualiza la información del menú'
+                      : 'Completa los datos del nuevo menú',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.6),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -417,20 +401,129 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: const Color(0xFF6366F1),
-          size: 24,
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: accentAmber.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: accentAmber, size: 20),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         Text(
           title,
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1F2937),
+            color: Colors.white,
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.8),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          style: const TextStyle(color: Colors.white),
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+            prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.5)),
+            filled: true,
+            fillColor: primaryDark,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: accentAmber.withOpacity(0.2)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: accentAmber.withOpacity(0.2)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: accentAmber, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFEF4444)),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBarSelector(BarsState barsState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Bar',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.8),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: primaryDark,
+            border: Border.all(color: accentAmber.withOpacity(0.2)),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: DropdownButton<String>(
+            value: _selectedBarId,
+            hint: Text(
+              'Selecciona un bar',
+              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+            ),
+            isExpanded: true,
+            underline: const SizedBox(),
+            dropdownColor: primaryDark,
+            icon: Icon(Icons.keyboard_arrow_down, color: accentAmber),
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+            items: barsState.bars.map((bar) {
+              return DropdownMenuItem(
+                value: bar.id,
+                child: Text(bar.nameBar),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedBarId = value;
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -439,9 +532,9 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: secondaryDark,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accentAmber.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,34 +542,60 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Producto ${index + 1}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: accentAmber.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: accentAmber,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Producto',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-              IconButton(
-                onPressed: () => _removeItem(index),
-                icon: const Icon(Icons.delete, color: Colors.red),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _removeItem(index),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.delete,
+                      color: Color(0xFFEF4444),
+                      size: 18,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          
-          TextFormField(
+          const SizedBox(height: 16),
+          _buildItemTextField(
             controller: item.nameController,
-            decoration: const InputDecoration(
-              labelText: 'Nombre *',
-              hintText: 'Ej: Cerveza Artesanal',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
-              ),
-            ),
+            label: 'Nombre *',
+            hint: 'Ej: Cerveza Artesanal',
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'El nombre es requerido';
@@ -484,21 +603,12 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
               return null;
             },
           ),
-          
           const SizedBox(height: 12),
-          
-          TextFormField(
+          _buildItemTextField(
             controller: item.priceController,
-            decoration: const InputDecoration(
-              labelText: 'Precio *',
-              hintText: '0.00',
-              prefixText: '€ ',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
-              ),
-            ),
+            label: 'Precio *',
+            hint: '0.00',
+            prefix: '€ ',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
@@ -514,40 +624,172 @@ class _MenuFormScreenState extends ConsumerState<MenuFormScreen> {
               return null;
             },
           ),
-          
           const SizedBox(height: 12),
-          
-          TextFormField(
+          _buildItemTextField(
             controller: item.descriptionController,
-            decoration: const InputDecoration(
-              labelText: 'Descripción',
-              hintText: 'Descripción del producto...',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
-              ),
-            ),
+            label: 'Descripción',
+            hint: 'Descripción del producto...',
             maxLines: 2,
-          ),
-          
-          const SizedBox(height: 12),
-          
-          TextFormField(
-            controller: item.photoController,
-            decoration: const InputDecoration(
-              labelText: 'Foto URL',
-              hintText: 'https://...',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
-              ),
-            ),
-            keyboardType: TextInputType.url,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildItemTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    String? prefix,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      maxLines: maxLines,
+      style: const TextStyle(color: Colors.white),
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+        prefixText: prefix,
+        prefixStyle: TextStyle(color: accentAmber),
+        filled: true,
+        fillColor: primaryDark,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: accentAmber.withOpacity(0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: accentAmber.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: accentAmber),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      ),
+    );
+  }
+
+  Widget _buildAddProductButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _addItem,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: accentAmber.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: accentAmber.withOpacity(0.3)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add, color: accentAmber, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Agregar Producto',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: accentAmber,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(bool isLoading) {
+    return Row(
+      children: [
+        Expanded(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.pop(),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: primaryDark,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: Center(
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 2,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isLoading ? null : _handleSubmit,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [accentAmber, accentGold],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentAmber.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          _isEditMode ? 'Actualizar Menú' : 'Crear Menú',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
