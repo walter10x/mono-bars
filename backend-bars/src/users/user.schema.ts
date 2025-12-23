@@ -37,6 +37,13 @@ export class User extends Document {
 
   @Prop({ required: true, default: 'client' })
   role: 'owner' | 'client' | 'admin';
+
+  // Password reset fields
+  @Prop({ required: false })
+  resetPasswordToken?: string;
+
+  @Prop({ required: false })
+  resetPasswordExpires?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
