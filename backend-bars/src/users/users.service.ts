@@ -137,4 +137,70 @@ export class UsersService {
 
     this.logger.log(`Usuario con id ${id} eliminado correctamente`);
   }
+
+  /**
+   * Actualiza el token de reset de contraseña para un usuario
+   */
+  async updateResetToken(id: string, hashedToken: string, expiresAt: Date): Promise<User> {
+    this.logger.log(`Actualizando token de reset para usuario con id: ${id}`);
+    
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      id,
+      {
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: expiresAt,
+      },
+      { new: true }
+    ).exec();
+
+    if (!updatedUser) {
+      this.logger.warn(`No se pudo actualizar token. Usuario con id ${id} no encontrado`);
+      throw new NotFoundException(`Usuario con id ${id} no encontrado`);
+    }
+
+    this.logger.log(`Token de reset actualizado para usuario con id: ${id}`);
+    return updatedUser;
+  }
+
+  /**
+   * Busca usuarios con tokens de reset activos (no expirados)
+   */
+  async findUsersWithActiveResetTokens(): Promise<User[]> {
+    this.logger.log('Buscando usuarios con tokens de reset activos');
+    
+    const now = new Date();
+    const users = await this.userModel.find({
+      resetPasswordToken: { $exists: true, $ne: null },
+      resetPasswordExpires: { $gt: now },
+    }).exec();
+
+    this.logger.log(`Encontrados ${users.length} usuarios con tokens de reset activos`);
+    return users;
+  }
+
+  /**
+   * Actualiza la contraseña y limpia los campos de reset
+   */
+  async updatePassword(id: string, hashedPassword: string): Promise<User> {
+    this.logger.log(`Actualizando contraseña para usuario con id: ${id}`);
+    
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      id,
+      {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+      { new: true }
+    ).exec();
+
+    if (!updatedUser) {
+      this.logger.warn(`No se pudo actualizar contraseña. Usuario con id ${id} no encontrado`);
+      throw new NotFoundException(`Usuario con id ${id} no encontrado`);
+    }
+
+    this.logger.log(`Contraseña actualizada y token de reset limpiado para usuario con id: ${id}`);
+    return updatedUser;
+  }
 }
+
