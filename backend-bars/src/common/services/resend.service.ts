@@ -37,13 +37,13 @@ export class ResendService {
     if (!this.isConfigured || !this.resend) {
       console.error('❌ ResendService no está configurado. Agrega RESEND_API_KEY en .env');
       console.log('📧 [MODO DESARROLLO] Token de reset para', email, ':', resetToken);
-      console.log('🔗 URL de reset:', `${this.frontendUrl}/reset-password?token=${resetToken}`);
+      console.log('🔗 URL de reset:', `${this.frontendUrl}?token=${resetToken}`);
       // En desarrollo, no lanzar error para permitir pruebas
       return;
     }
 
     try {
-      const resetUrl = `${this.frontendUrl}/reset-password?token=${resetToken}`;
+      const resetUrl = `${this.frontendUrl}?token=${resetToken}`;
 
       const { data, error } = await this.resend.emails.send({
         from: this.fromEmail,
