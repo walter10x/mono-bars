@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña - TourBar</title>
+    <meta name="description" content="Restablece tu contraseña de TourBar">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
+                        <circle cx="50" cy="50" r="45" fill="url(#gradient)" />
+                        <path d="M35 65L50 35L65 65H35Z" fill="#1A1A2E"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FFA500"/>
+                                <stop offset="100%" stop-color="#FFB84D"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1 class="title">TourBar</h1>
+            </div>
+            <h2 class="subtitle" id="pageTitle">Nueva Contraseña</h2>
+            <p class="description" id="pageDescription">Ingresa tu nueva contraseña para restablecer tu cuenta</p>
+        </div>
+
+        <!-- Card -->
+        <div class="card" id="formCard">
+            <form id="resetForm">
+                <div class="form-group">
+                    <label for="password">Nueva Contraseña</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="password" name="password" required 
+                               minlength="6" placeholder="Mínimo 6 caracteres">
+                        <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar Contraseña</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required 
+                               minlength="6" placeholder="Repite tu contraseña">
+                        <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span id="btnText">RESTABLECER CONTRASEÑA</span>
+                    <span id="btnLoader" class="loader" style="display: none;"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Success Card -->
+        <div class="card success-card" id="successCard" style="display: none;">
+            <div class="success-icon">✅</div>
+            <h3>¡Contraseña Restablecida!</h3>
+            <p>Tu contraseña ha sido actualizada exitosamente.</p>
+            <p class="success-hint">Ya puedes iniciar sesión en la app con tu nueva contraseña.</p>
+        </div>
+
+        <!-- Error Card -->
+        <div class="card error-card" id="errorCard" style="display: none;">
+            <div class="error-icon">❌</div>
+            <h3 id="errorTitle">Token Inválido</h3>
+            <p id="errorText">El enlace de restablecimiento es inválido o ha expirado.</p>
+            <a href="#" class="retry-link" onclick="window.location.reload()">Intentar de nuevo</a>
+        </div>
+
+        <!-- No Token Card -->
+        <div class="card info-card" id="noTokenCard" style="display: none;">
+            <div class="info-icon">ℹ️</div>
+            <h3>Enlace Inválido</h3>
+            <p>No se encontró un token de restablecimiento válido en este enlace.</p>
+            <p class="info-hint">Por favor, solicita un nuevo enlace de recuperación desde la app.</p>
+        </div>
+
+        <footer class="footer">
+            <p>© 2024 TourBar - Todos los derechos reservados</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
