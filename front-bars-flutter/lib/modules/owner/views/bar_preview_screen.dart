@@ -9,6 +9,7 @@ import 'package:front_bars_flutter/modules/bars/controllers/bars_controller.dart
 import 'package:front_bars_flutter/modules/bars/models/bar_models.dart';
 
 /// Pantalla de vista previa del bar (solo lectura)
+/// Rediseñada con tema oscuro premium
 class BarPreviewScreen extends ConsumerStatefulWidget {
   final String barId;
 
@@ -22,6 +23,13 @@ class BarPreviewScreen extends ConsumerStatefulWidget {
 }
 
 class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
+  // Colores del tema oscuro premium
+  static const backgroundColor = Color(0xFF0F0F1E);
+  static const primaryDark = Color(0xFF1A1A2E);
+  static const secondaryDark = Color(0xFF16213E);
+  static const accentAmber = Color(0xFFFFA500);
+  static const accentGold = Color(0xFFFFB84D);
+
   @override
   void initState() {
     super.initState();
@@ -36,24 +44,40 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
     final bar = barsState.selectedBar;
 
     if (barsState.isLoading || bar == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        body: Center(
+          child: CircularProgressIndicator(color: accentAmber),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: backgroundColor,
       body: CustomScrollView(
         slivers: [
           // App Bar con imagen
           SliverAppBar(
             expandedHeight: 250,
             pinned: true,
+            backgroundColor: primaryDark,
+            leading: IconButton(
+              onPressed: () => context.pop(),
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back, color: Colors.white),
+              ),
+            ),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 bar.nameBar,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  fontSize: 18,
                   shadows: [
                     Shadow(
                       color: Colors.black45,
@@ -63,22 +87,49 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
                   ],
                 ),
               ),
-              background: bar.photo != null && bar.photo!.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: ImageUrlHelper.getFullImageUrl(bar.photo),
-                      fit: BoxFit.cover,
-                      errorWidget: (context, error, stackTrace) =>
-                          _buildPlaceholderImage(),
-                    )
-                  : _buildPlaceholderImage(),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  bar.photo != null && bar.photo!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: ImageUrlHelper.getFullImageUrl(bar.photo),
+                          fit: BoxFit.cover,
+                          errorWidget: (context, error, stackTrace) =>
+                              _buildPlaceholderImage(),
+                        )
+                      : _buildPlaceholderImage(),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          backgroundColor.withOpacity(0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
-              IconButton(
-                onPressed: () {
-                  context.push('/owner/bars/${widget.barId}/edit');
-                },
-                icon: const Icon(Icons.edit),
-                tooltip: 'Editar',
+              Container(
+                margin: const EdgeInsets.only(right: 16),
+                child: IconButton(
+                  onPressed: () {
+                    context.push('/owner/bars/${widget.barId}/edit');
+                  },
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: accentAmber.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.edit, color: accentAmber, size: 20),
+                  ),
+                  tooltip: 'Editar',
+                ),
               ),
             ],
           ),
@@ -98,9 +149,14 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: bar.isActive
-                          ? const Color(0xFF10B981).withOpacity(0.1)
-                          : const Color(0xFFEF4444).withOpacity(0.1),
+                          ? const Color(0xFF10B981).withOpacity(0.15)
+                          : const Color(0xFFEF4444).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: bar.isActive
+                            ? const Color(0xFF10B981).withOpacity(0.3)
+                            : const Color(0xFFEF4444).withOpacity(0.3),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -135,25 +191,26 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
                     icon: Icons.location_on,
                     child: Text(
                       bar.location,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TextStyle(
+                        fontSize: 15,
                         height: 1.5,
-                        color: Color(0xFF6B7280),
+                        color: Colors.white.withOpacity(0.7),
                       ),
                     ),
                   ),
 
-                  if (bar.description != null && bar.description!.isNotEmpty) ...[
+                  if (bar.description != null &&
+                      bar.description!.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     _buildSection(
                       title: 'Descripción',
                       icon: Icons.description,
                       child: Text(
                         bar.description!,
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: TextStyle(
+                          fontSize: 15,
                           height: 1.5,
-                          color: Color(0xFF6B7280),
+                          color: Colors.white.withOpacity(0.7),
                         ),
                       ),
                     ),
@@ -167,17 +224,17 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
                       icon: Icons.phone,
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.phone,
                             size: 20,
-                            color: Color(0xFF6366F1),
+                            color: accentAmber,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 10),
                           Text(
                             bar.phone!,
                             style: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF6B7280),
+                              fontSize: 15,
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -196,13 +253,12 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (bar.socialLinks!.facebook != null) ...[
+                          if (bar.socialLinks!.facebook != null)
                             _buildSocialLink(
                               'Facebook',
                               Icons.facebook,
                               bar.socialLinks!.facebook!,
                             ),
-                          ],
                           if (bar.socialLinks!.instagram != null) ...[
                             if (bar.socialLinks!.facebook != null)
                               const SizedBox(height: 12),
@@ -239,12 +295,18 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
 
   Widget _buildPlaceholderImage() {
     return Container(
-      color: const Color(0xFF6366F1),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [accentAmber, accentGold],
+        ),
+      ),
       child: const Center(
         child: Icon(
           Icons.storefront,
           size: 80,
-          color: Colors.white,
+          color: Colors.black26,
         ),
       ),
     );
@@ -259,15 +321,11 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: primaryDark,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: accentAmber.withOpacity(0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,14 +333,14 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: accentAmber.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
-                  color: const Color(0xFF6366F1),
+                  color: accentAmber,
                   size: 20,
                 ),
               ),
@@ -292,7 +350,7 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -308,10 +366,10 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(8),
+        color: secondaryDark,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFFE5E7EB),
+          color: accentAmber.withOpacity(0.15),
         ),
       ),
       child: Row(
@@ -319,7 +377,7 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
           Icon(
             icon,
             size: 20,
-            color: const Color(0xFF6366F1),
+            color: accentAmber,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -331,15 +389,15 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   url,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF6B7280),
+                    color: Colors.white.withOpacity(0.5),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -382,7 +440,7 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
     });
 
     if (widgets.isNotEmpty) {
-      widgets.removeLast(); // Remove last SizedBox
+      widgets.removeLast();
     }
 
     return widgets;
@@ -392,10 +450,10 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(8),
+        color: secondaryDark,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFFE5E7EB),
+          color: accentAmber.withOpacity(0.15),
         ),
       ),
       child: Row(
@@ -406,14 +464,22 @@ class _BarPreviewScreenState extends ConsumerState<BarPreviewScreen> {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1F2937),
+              color: Colors.white,
             ),
           ),
-          Text(
-            '${hours.open} - ${hours.close}',
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B7280),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: accentAmber.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '${hours.open} - ${hours.close}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: accentAmber,
+              ),
             ),
           ),
         ],

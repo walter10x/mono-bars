@@ -9,6 +9,7 @@ import 'package:front_bars_flutter/modules/menus/controllers/menus_controller.da
 import 'package:front_bars_flutter/modules/menus/models/menu_models.dart';
 
 /// Pantalla de vista previa del menú (solo lectura)
+/// Rediseñada con tema oscuro premium
 class MenuPreviewScreen extends ConsumerStatefulWidget {
   final String menuId;
 
@@ -22,6 +23,13 @@ class MenuPreviewScreen extends ConsumerStatefulWidget {
 }
 
 class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
+  // Colores del tema oscuro premium
+  static const backgroundColor = Color(0xFF0F0F1E);
+  static const primaryDark = Color(0xFF1A1A2E);
+  static const secondaryDark = Color(0xFF16213E);
+  static const accentAmber = Color(0xFFFFA500);
+  static const accentGold = Color(0xFFFFB84D);
+
   @override
   void initState() {
     super.initState();
@@ -36,24 +44,40 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
     final menu = menusState.selectedMenu;
 
     if (menusState.isLoading || menu == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        body: Center(
+          child: CircularProgressIndicator(color: accentAmber),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: backgroundColor,
       body: CustomScrollView(
         slivers: [
           // App Bar con imagen
           SliverAppBar(
             expandedHeight: 250,
             pinned: true,
+            backgroundColor: primaryDark,
+            leading: IconButton(
+              onPressed: () => context.pop(),
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back, color: Colors.white),
+              ),
+            ),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 menu.name,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  fontSize: 18,
                   shadows: [
                     Shadow(
                       color: Colors.black45,
@@ -63,22 +87,51 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
                   ],
                 ),
               ),
-              background: menu.photoUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: ImageUrlHelper.getFullImageUrl(menu.photoUrl),
-                      fit: BoxFit.cover,
-                      errorWidget: (context, error, stackTrace) =>
-                          _buildPlaceholderImage(),
-                    )
-                  : _buildPlaceholderImage(),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  menu.photoUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl:
+                              ImageUrlHelper.getFullImageUrl(menu.photoUrl),
+                          fit: BoxFit.cover,
+                          errorWidget: (context, error, stackTrace) =>
+                              _buildPlaceholderImage(),
+                        )
+                      : _buildPlaceholderImage(),
+                  // Gradient overlay
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          backgroundColor.withOpacity(0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
-              IconButton(
-                onPressed: () {
-                  context.push('/owner/menus/${widget.menuId}/edit');
-                },
-                icon: const Icon(Icons.edit),
-                tooltip: 'Editar',
+              Container(
+                margin: const EdgeInsets.only(right: 16),
+                child: IconButton(
+                  onPressed: () {
+                    context.push('/owner/menus/${widget.menuId}/edit');
+                  },
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: accentAmber.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.edit, color: accentAmber, size: 20),
+                  ),
+                  tooltip: 'Editar',
+                ),
               ),
             ],
           ),
@@ -91,16 +144,17 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Descripción
-                  if (menu.description != null && menu.description!.isNotEmpty) ...[
+                  if (menu.description != null &&
+                      menu.description!.isNotEmpty) ...[
                     _buildSection(
                       title: 'Descripción',
                       icon: Icons.description,
                       child: Text(
                         menu.description!,
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: TextStyle(
+                          fontSize: 15,
                           height: 1.5,
-                          color: Color(0xFF6B7280),
+                          color: Colors.white.withOpacity(0.7),
                         ),
                       ),
                     ),
@@ -130,12 +184,18 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
 
   Widget _buildPlaceholderImage() {
     return Container(
-      color: const Color(0xFF8B5CF6),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [accentAmber, accentGold],
+        ),
+      ),
       child: const Center(
         child: Icon(
           Icons.restaurant_menu,
           size: 80,
-          color: Colors.white,
+          color: Colors.black26,
         ),
       ),
     );
@@ -150,15 +210,11 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: primaryDark,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: accentAmber.withOpacity(0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,14 +222,14 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: accentAmber.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
-                  color: const Color(0xFF8B5CF6),
+                  color: accentAmber,
                   size: 20,
                 ),
               ),
@@ -183,7 +239,7 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -200,10 +256,10 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(12),
+        color: secondaryDark,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE5E7EB),
+          color: accentAmber.withOpacity(0.15),
         ),
       ),
       child: Row(
@@ -212,7 +268,7 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
           // Imagen del producto
           if (item.photoUrl != null)
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               child: CachedNetworkImage(
                 imageUrl: ImageUrlHelper.getFullImageUrl(item.photoUrl),
                 width: 60,
@@ -224,7 +280,7 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
             )
           else
             _buildItemPlaceholder(),
-          
+
           const SizedBox(width: 16),
 
           // Información del producto
@@ -237,37 +293,40 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1F2937),
+                    color: Colors.white,
                   ),
                 ),
-                if (item.description != null && item.description!.isNotEmpty) ...[
+                if (item.description != null &&
+                    item.description!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     item.description!,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF6B7280),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.6),
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    gradient: const LinearGradient(
+                      colors: [accentAmber, accentGold],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '\$${item.price.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF10B981),
+                      color: Colors.black,
                     ),
                   ),
                 ),
@@ -284,13 +343,16 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        color: const Color(0xFFE5E7EB),
-        borderRadius: BorderRadius.circular(8),
+        color: secondaryDark,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: accentAmber.withOpacity(0.2),
+        ),
       ),
-      child: const Icon(
+      child: Icon(
         Icons.fastfood,
-        color: Color(0xFF9CA3AF),
-        size: 30,
+        color: Colors.white.withOpacity(0.3),
+        size: 28,
       ),
     );
   }
@@ -302,18 +364,25 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.inventory_2_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: accentAmber.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.inventory_2_outlined,
+                size: 48,
+                color: accentAmber.withOpacity(0.5),
+              ),
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Sin productos',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -321,7 +390,7 @@ class _MenuPreviewScreenState extends ConsumerState<MenuPreviewScreen> {
               'Este menú no tiene productos aún',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: Colors.white.withOpacity(0.6),
               ),
             ),
           ],
