@@ -179,11 +179,11 @@ class AuthServiceImpl implements AuthService {
   ) async {
     try {
       final response = await _dioClient.post(
-        '/auth/forgot-password',
+        '/auth/request-reset',
         data: request.toJson(),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return const Right(null);
       } else {
         return const Left(ServerFailure(
@@ -208,7 +208,7 @@ class AuthServiceImpl implements AuthService {
         data: request.toJson(),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return const Right(null);
       } else {
         return const Left(ServerFailure(

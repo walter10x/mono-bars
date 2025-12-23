@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../modules/auth/controllers/auth_controller.dart';
 import '../modules/auth/views/login_screen.dart';
 import '../modules/auth/views/register_screen.dart';
+import '../modules/auth/views/forgot_password_screen.dart';
+import '../modules/auth/views/reset_password_screen.dart';
 import '../modules/home/views/home_screen.dart';
 import '../modules/profile/views/profile_screen.dart';
 import '../modules/profile/views/change_password_screen.dart';
@@ -89,11 +91,12 @@ class AppRouter {
         final userRole = ref.read(userRoleProvider);
         final currentLocation = state.matchedLocation;
         
-        // Rutas de autenticación
+        // Rutas de autenticación (públicas)
         final isLoggingIn = currentLocation == login;
         final isRegistering = currentLocation == register;
         final isForgotPassword = currentLocation == forgotPassword;
-        final isAuthRoute = isLoggingIn || isRegistering || isForgotPassword;
+        final isResetPassword = currentLocation.startsWith('/reset-password');
+        final isAuthRoute = isLoggingIn || isRegistering || isForgotPassword || isResetPassword;
         
         // Si no está autenticado y no está en pantallas de auth, redirigir al login
         if (!isAuthenticated && !isAuthRoute) {
@@ -140,11 +143,16 @@ class AppRouter {
         GoRoute(
           path: forgotPassword,
           name: 'forgotPassword',
-          builder: (context, state) => const Scaffold(
-            body: Center(
-              child: Text('Pantalla de Recuperación de Contraseña - Por implementar'),
-            ),
-          ),
+          builder: (context, state) => const ForgotPasswordScreen(),
+        ),
+        
+        GoRoute(
+          path: '/reset-password',
+          name: 'resetPassword',
+          builder: (context, state) {
+            final token = state.uri.queryParameters['token'];
+            return ResetPasswordScreen(token: token);
+          },
         ),
         
         // Rutas de Owner
