@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { DebugController } from './debug.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from '../users/users.module';
+import { ResendService } from '../common/services/resend.service';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { UsersModule } from '../users/users.module';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, ResendService],
   controllers: [AuthController, DebugController],
   exports: [PassportModule, JwtStrategy],
 })
