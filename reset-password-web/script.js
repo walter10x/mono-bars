@@ -1,5 +1,5 @@
 // Configuración de la API
-const API_BASE_URL = 'https://your-backend-api.com'; // CAMBIAR por tu URL del backend
+const API_BASE_URL = 'https://e1964d5996d5.ngrok-free.app'; // TEMPORAL - NO HACER COMMIT
 
 // Elementos del DOM
 const formCard = document.getElementById('formCard');

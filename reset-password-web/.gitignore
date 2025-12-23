@@ -1,0 +1,6 @@
+# Local config files - DO NOT COMMIT
+config.local.js
+
+# OS files
+.DS_Store
+Thumbs.db
