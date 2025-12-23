@@ -14,7 +14,7 @@ Aplicación móvil para descubrir bares, ver menús y promociones. Desarrollada 
 - 🍺 **Ver menús** completos con categorías y precios
 - 🎉 **Promociones** con descuentos y fechas de validez
 - ⭐ **Reseñas y Calificaciones** ver opiniones y calificar bares
-- ❤️ **Favoritos** (próximamente)
+- ❤️ **Favoritos** guardar bares favoritos
 
 ### Para Propietarios (Owners)
 - 🏪 **Gestionar bares** propios (CRUD)
@@ -115,10 +115,11 @@ flutter_native_splash:
 - [x] Subida de fotos
 - [x] Ícono personalizado TourBar
 - [x] Splash screen personalizado
+- [x] **Recuperación de contraseña** con email
+- [x] **Sistema de favoritos**
 
 ## 🔜 Próximamente
 
-- [ ] Favoritos para clientes
 - [ ] Reservas en bares
 - [ ] Notificaciones push
 - [ ] Modo offline
