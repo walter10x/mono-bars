@@ -18,7 +18,9 @@ import { FavoritesModule } from './favorites/favorites.module';
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === 'docker' ? '.env.docker' : '.env',
     }),
-    MongooseModule.forRoot(process.env.MONGO_URI!),
+    MongooseModule.forRoot(
+      process.env.MONGODB_URI || process.env.MONGO_URI!,
+    ),
     BarsModule,
     UsersModule,
     AuthModule,
