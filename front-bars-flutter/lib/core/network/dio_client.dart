@@ -4,23 +4,36 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
+import '../../config/environment_config.dart';
 import '../constants/app_constants.dart';
 import '../errors/http_exception.dart';
 import '../storage/secure_storage_service.dart';
 
 /// Configuración del cliente HTTP usando Dio
+/// 
+/// ¿QUÉ CAMBIÓ?
+/// - Ahora recibe Ref para leer el environmentProvider
+/// - La baseUrl se obtiene dinámicamente del entorno actual
+/// - Ya NO usa AppConstants.baseUrl (estático)
+/// - Esto permite cambiar el backend sin reiniciar la app
 class DioClient {
   late final Dio _dio;
   final SecureStorageService _storageService;
+  final Ref _ref; // NUEVO: Necesario para leer el entorno
   final Logger _logger = Logger();
   
   // Stream para notificar errores de autenticación
   final _authErrorController = StreamController<String>.broadcast();
   Stream<String> get authErrorStream => _authErrorController.stream;
 
-  DioClient(this._storageService) {
+  DioClient(this._storageService, this._ref) {
+    // IMPORTANTE: Ahora la baseUrl se obtiene del environmentProvider
+    // Esto significa que cambiará automáticamente cuando el usuario
+    // cambie el entorno en la pantalla de configuración
+    final baseUrl = _ref.read(baseUrlProvider);
+    
     _dio = Dio(BaseOptions(
-      baseUrl: AppConstants.baseUrl,
+      baseUrl: baseUrl,
       connectTimeout: AppConstants.connectionTimeout,
       receiveTimeout: AppConstants.receiveTimeout,
       sendTimeout: AppConstants.sendTimeout,
@@ -244,7 +257,11 @@ class DioClient {
 }
 
 /// Provider para DioClient
+/// 
+/// ¿QUÉ CAMBIÓ?
+/// - Ahora pasa 'ref' al constructor de DioClient
+/// - Esto permite que DioClient lea el entorno actual
 final dioClientProvider = Provider<DioClient>((ref) {
   final storageService = ref.watch(secureStorageServiceProvider);
-  return DioClient(storageService);
+  return DioClient(storageService, ref); // NUEVO: pasamos ref
 });

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'config/app_router.dart';
 import 'config/app_theme.dart';
+import 'config/environment_config.dart';
 import 'core/storage/secure_storage_service.dart';
 
 void main() async {
@@ -22,6 +23,13 @@ void main() async {
       overrides: [
         // Sobrescribir el provider de almacenamiento con la instancia real
         secureStorageServiceProvider.overrideWithValue(storageService),
+        
+        // NUEVO: Sobrescribir el provider de entorno
+        // ¿POR QUÉ SE HACE AQUÍ?
+        // - SharedPreferences debe inicializarse antes de usarse
+        // - main() es el punto de entrada, perfecto para configuración inicial
+        // - Permite que toda la app tenga acceso al entorno actual
+        environmentProvider.overrideWith((ref) => EnvironmentNotifier(prefs)),
       ],
       child: const BarApp(),
     ),
