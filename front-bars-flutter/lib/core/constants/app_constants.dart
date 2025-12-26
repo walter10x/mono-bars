@@ -1,6 +1,6 @@
 class AppConstants {
   // API Configuration
-  static const String baseUrl = 'http://10.0.2.2:3000'; // Emulador Android -> PC localhost:3000
+  static const String baseUrl = 'https://mono-bars-production.up.railway.app'; // Railway Production
   static const String apiVersion = 'v1';
   
   // Storage Keys
