@@ -21,4 +21,8 @@ export class UpdateUserDto {
   @MinLength(9, { message: 'El teléfono debe tener al menos 9 dígitos' })
   @MaxLength(15, { message: 'El teléfono no puede tener más de 15 dígitos' })
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  avatar?: string;
 }

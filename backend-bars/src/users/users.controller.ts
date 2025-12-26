@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Delete, Param, Body, NotFoundException, ForbiddenException, Req, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Put, Patch, Delete, Param, Body, NotFoundException, ForbiddenException, Req, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -41,6 +41,26 @@ export class UsersController {
     if (String(req.user.userId) !== String(id)) {
       throw new ForbiddenException('No tienes permiso para actualizar este usuario');
     }
+    return this.usersService.update(id, updateUserDto);
+  }
+
+  /**
+   * Endpoint PATCH para actualizaciones parciales (ej: cambio de rol)
+   * Permite al usuario autenticado actualizar sus propios datos
+   */
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async partialUpdate(@Param('id') id: string, @Body() updateUserDto: Partial<CreateUserDto>, @Request() req): Promise<User> {
+    // Validar que el usuario solo pueda actualizar su propia cuenta
+    if (String(req.user.userId) !== String(id)) {
+      throw new ForbiddenException('No tienes permiso para actualizar este usuario');
+    }
+    
+    console.log('🔄 PATCH - Actualizando usuario:');
+    console.log('ID:', id);
+    console.log('Datos:', updateUserDto);
+    console.log('-----------------------------------');
+    
     return this.usersService.update(id, updateUserDto);
   }
 

@@ -204,5 +204,121 @@ export class AuthService {
       throw new BadRequestException('Error al restablecer la contraseña. Por favor, solicita un nuevo enlace de restablecimiento.');
     }
   }
-}
 
+  /**
+   * Valida un token de Firebase Auth y crea/retorna el usuario
+   * Este método verifica el ID token de Firebase Auth (generado después de Google Sign-In)
+   * Los tokens de Firebase tienen un formato JWT diferente a los tokens de Google OAuth
+   */
+  async validateGoogleUser(idToken: string) {
+    try {
+      // Firebase ID tokens son JWTs que se pueden decodificar
+      // Primero intentamos verificar con Firebase/Google
+      
+      // Opción 1: Verificar usando el endpoint de Google para tokens de Firebase
+      // Los Firebase ID tokens pueden verificarse con el endpoint de Google securetoken
+      let googleUser: any = null;
+      
+      // Intentar primero con el endpoint de Firebase/Google
+      const firebaseResponse = await fetch(
+        `https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo?key=${process.env.FIREBASE_API_KEY || process.env.GOOGLE_CLIENT_ID}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken }),
+        }
+      );
+
+      if (firebaseResponse.ok) {
+        const firebaseData = await firebaseResponse.json();
+        if (firebaseData.users && firebaseData.users[0]) {
+          const user = firebaseData.users[0];
+          googleUser = {
+            email: user.email,
+            email_verified: user.emailVerified,
+            name: user.displayName || user.email.split('@')[0],
+            picture: user.photoUrl,
+          };
+          console.log('✅ Token verificado como Firebase ID Token');
+        }
+      }
+
+      // Si no funciona con Firebase, intentar con Google OAuth tokeninfo (fallback)
+      if (!googleUser) {
+        const oauthResponse = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`
+        );
+
+        if (oauthResponse.ok) {
+          googleUser = await oauthResponse.json();
+          console.log('✅ Token verificado como Google OAuth Token');
+        }
+      }
+
+      // Si ninguno funciona, el token es inválido
+      if (!googleUser) {
+        console.log('❌ Token inválido - no es Firebase ni Google OAuth');
+        throw new UnauthorizedException('Token de Google inválido');
+      }
+
+      // Verificar que el email esté verificado
+      if (googleUser.email_verified !== 'true' && googleUser.email_verified !== true) {
+        throw new UnauthorizedException('Email de Google no verificado');
+      }
+
+      const email = googleUser.email;
+      const name = googleUser.name || googleUser.email.split('@')[0];
+      const picture = googleUser.picture;
+
+      console.log('✅ TOKEN VERIFICADO');
+      console.log(`📧 Email: ${email}`);
+      console.log(`👤 Nombre: ${name}`);
+      console.log('-----------------------------------');
+
+      // Buscar usuario existente
+      let user = await this.usersService.findByEmail(email);
+      let isNewUser = false;
+
+      if (!user) {
+        // Crear nuevo usuario con datos de Google
+        console.log('🆕 Creando nuevo usuario desde Google...');
+        isNewUser = true;
+        
+        // Generar contraseña aleatoria (usuario de Google no la usará)
+        const randomPassword = crypto.randomBytes(32).toString('hex');
+
+        user = await this.usersService.register({
+          email,
+          name,
+          password: randomPassword, // Se hasheará en register()
+          role: 'client', // Por defecto: cliente (se puede cambiar después)
+        });
+
+        // Actualizar avatar si existe
+        if (picture && user) {
+          await this.usersService.update((user as any)._id.toString(), { avatar: picture });
+        }
+
+        console.log('✅ Usuario creado desde Google');
+        console.log(`🆔 ID: ${(user as any)._id}`);
+        console.log('-----------------------------------');
+      }
+
+      // Asegurar que user no es null antes de continuar
+      if (!user) {
+        throw new UnauthorizedException('Error al crear usuario');
+      }
+
+      // Retornar usuario (sin contraseña) junto con flag isNewUser
+      const userObj = (user as any).toObject ? (user as any).toObject() : user;
+      const { password: _, ...result } = userObj;
+      return { user: result, isNewUser };
+    } catch (error) {
+      console.error('❌ Error validando token:', error);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Error al verificar token de Google');
+    }
+  }
+}

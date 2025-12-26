@@ -31,4 +31,20 @@ export class AuthController {
   async resetPassword(@Body() resetDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetDto.token, resetDto.newPassword);
   }
+
+  /**
+   * Endpoint para login/registro con Google
+   * Recibe el ID Token de Firebase Auth desde el frontend
+   * Valida el token y crea/retorna el usuario
+   * Incluye isNewUser flag para indicar si es primera vez
+   */
+  @Post('google')
+  async googleAuth(@Body() googleAuthDto: { idToken: string }) {
+    const { user, isNewUser } = await this.authService.validateGoogleUser(googleAuthDto.idToken);
+    const loginResult = await this.authService.login(user);
+    return {
+      ...loginResult,
+      isNewUser, // Flag para que el frontend muestre pantalla de selección de rol
+    };
+  }
 }
