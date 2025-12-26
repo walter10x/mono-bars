@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1059953758494",
+    "project_id": "tourbar-app",
+    "storage_bucket": "tourbar-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1059953758494:android:c7853e35a10c05bd59f90f",
+        "android_client_info": {
+          "package_name": "com.example.front_bars_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1059953758494-fdqt42nmtsjamquj81fjjjgmds8vuf29.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.front_bars_flutter",
+            "certificate_hash": "ac502f1c8152d66afbb4983b808ec3c580d0f8ec"
+          }
+        },
+        {
+          "client_id": "1059953758494-mruub1v0p4fe92fcaom1g0fkrcp4odbg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB39n3KkJRWx1EL4mgJ-DnX3hbzWZoFiqA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1059953758494-mruub1v0p4fe92fcaom1g0fkrcp4odbg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

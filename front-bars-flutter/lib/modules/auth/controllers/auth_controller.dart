@@ -92,6 +92,32 @@ class AuthController extends _$AuthController {
     }
   }
 
+  /// Inicia sesión con Google
+  /// Retorna true si es usuario nuevo (necesita seleccionar rol)
+  Future<bool> loginWithGoogle(String idToken) async {
+    state = AuthState.loading();
+
+    try {
+      final result = await _authService.loginWithGoogle(idToken);
+      bool isNewUser = false;
+
+      result.fold(
+        (failure) {
+          state = AuthState.error(failure.message);
+        },
+        (googleLoginResult) {
+          state = AuthState.authenticated(googleLoginResult.loginResponse.user);
+          isNewUser = googleLoginResult.isNewUser;
+        },
+      );
+      
+      return isNewUser;
+    } catch (e) {
+      state = AuthState.error('Error inesperado: ${e.toString()}');
+      return false;
+    }
+  }
+
   /// Registra un nuevo usuario
   Future<bool> register({
     required String email,

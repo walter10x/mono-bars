@@ -7,9 +7,18 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../models/auth_models.dart';
 
+/// Respuesta de login con flag isNewUser
+class GoogleLoginResult {
+  final LoginResponse loginResponse;
+  final bool isNewUser;
+  
+  GoogleLoginResult({required this.loginResponse, required this.isNewUser});
+}
+
 /// Servicio para manejar la autenticación
 abstract class AuthService {
   Future<Either<Failure, LoginResponse>> login(LoginRequest request);
+  Future<Either<Failure, GoogleLoginResult>> loginWithGoogle(String idToken);
   Future<Either<Failure, RegisterResponse>> register(RegisterRequest request);
   Future<Either<Failure, RefreshTokenResponse>> refreshToken(String refreshToken);
   Future<Either<Failure, void>> logout();
@@ -18,6 +27,7 @@ abstract class AuthService {
   Future<Either<Failure, void>> changePassword(ChangePasswordRequest request);
   Future<Either<Failure, User>> getCurrentUser();
   Future<Either<Failure, bool>> verifyToken();
+  Future<Either<Failure, User>> updateUserRole(String userId, String role);
 }
 
 /// Implementación del servicio de autenticación
@@ -77,6 +87,62 @@ class AuthServiceImpl implements AuthService {
       } else {
         return const Left(ServerFailure(
           message: 'Error en el servidor',
+          statusCode: 500,
+        ));
+      }
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } catch (e) {
+      return Left(GeneralFailure(message: 'Error: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, GoogleLoginResult>> loginWithGoogle(String idToken) async {
+    try {
+      final response = await _dioClient.post<Map<String, dynamic>>(
+        '/auth/google',
+        data: {'idToken': idToken},
+      );
+
+      if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
+        final data = response.data!;
+        
+        // Capturar flag isNewUser del backend
+        final bool isNewUser = data['isNewUser'] ?? false;
+        
+        // Adaptar response del backend a formato esperado por el modelo
+        final Map<String, dynamic> adaptedData = {
+          'accessToken': data['access_token'] ?? data['accessToken'],
+          'refreshToken': data['refresh_token'] ?? data['refreshToken'],
+          'user': data['user'] ?? {
+            'id': data['id'] ?? data['sub'] ?? '',
+            'email': data['email'] ?? '',
+            'name': data['name'],
+            'firstName': data['firstName'] ?? data['first_name'],
+            'lastName': data['lastName'] ?? data['last_name'],
+            'avatar': data['avatar'],
+            'role': data['role'] ?? 'client',
+            'roles': data['roles'] ?? [data['role'] ?? 'client'],
+            'isActive': data['isActive'] ?? data['is_active'] ?? true,
+            'createdAt': data['createdAt'] ?? data['created_at'] ?? DateTime.now().toIso8601String(),
+            'updatedAt': data['updatedAt'] ?? data['updated_at'] ?? DateTime.now().toIso8601String(),
+          },
+        };
+        
+        final loginResponse = LoginResponse.fromJson(adaptedData);
+        
+        // Guardar tokens y datos de usuario
+        await _storageService.saveTokens(
+          accessToken: loginResponse.accessToken,
+          refreshToken: loginResponse.refreshToken,
+        );
+        await _storageService.saveUserData(loginResponse.user.toJson());
+
+        return Right(GoogleLoginResult(loginResponse: loginResponse, isNewUser: isNewUser));
+      } else {
+        return const Left(ServerFailure(
+          message: 'Error en autenticación con Google',
           statusCode: 500,
         ));
       }
@@ -307,6 +373,35 @@ class AuthServiceImpl implements AuthService {
       return Left(_handleDioError(e));
     } catch (e) {
       return const Right(false);
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> updateUserRole(String userId, String role) async {
+    try {
+      final response = await _dioClient.patch<Map<String, dynamic>>(
+        '/users/$userId',
+        data: {'role': role},
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final userData = response.data!;
+        final user = User.fromJson(userData);
+        
+        // Actualizar en almacenamiento local
+        await _storageService.saveUserData(user.toJson());
+        
+        return Right(user);
+      } else {
+        return const Left(ServerFailure(
+          message: 'Error al actualizar rol',
+          statusCode: 500,
+        ));
+      }
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } catch (e) {
+      return Left(GeneralFailure(message: 'Error: ${e.toString()}'));
     }
   }
 

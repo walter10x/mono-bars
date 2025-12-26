@@ -7,6 +7,7 @@ import '../modules/auth/views/login_screen.dart';
 import '../modules/auth/views/register_screen.dart';
 import '../modules/auth/views/forgot_password_screen.dart';
 import '../modules/auth/views/reset_password_screen.dart';
+import '../modules/auth/views/role_selection_screen.dart';
 import '../modules/home/views/home_screen.dart';
 import '../modules/profile/views/profile_screen.dart';
 import '../modules/profile/views/change_password_screen.dart';
@@ -46,6 +47,7 @@ class AppRouter {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+  static const String roleSelection = '/role-selection';
   
   // Rutas de owner
   static const String ownerDashboard = '/owner/dashboard';
@@ -96,15 +98,20 @@ class AppRouter {
         final isRegistering = currentLocation == register;
         final isForgotPassword = currentLocation == forgotPassword;
         final isResetPassword = currentLocation.startsWith('/reset-password');
-        final isAuthRoute = isLoggingIn || isRegistering || isForgotPassword || isResetPassword;
+        final isRoleSelection = currentLocation == roleSelection;
+        final isAuthRoute = isLoggingIn || isRegistering || isForgotPassword || isResetPassword || isRoleSelection;
         
         // Si no está autenticado y no está en pantallas de auth, redirigir al login
         if (!isAuthenticated && !isAuthRoute) {
           return login;
         }
         
-        // Si está autenticado y está en pantallas de auth, redirigir según rol
+        // Si está autenticado y está en pantallas de auth (excepto role-selection), redirigir según rol
         if (isAuthenticated && isAuthRoute) {
+          // Permitir acceso a role-selection para usuarios nuevos
+          if (currentLocation == roleSelection) {
+            return null; // No redireccionar, dejar que acceda
+          }
           if (userRole == 'owner') {
             return ownerDashboard;
           } else {
@@ -153,6 +160,12 @@ class AppRouter {
             final token = state.uri.queryParameters['token'];
             return ResetPasswordScreen(token: token);
           },
+        ),
+        
+        GoRoute(
+          path: roleSelection,
+          name: 'roleSelection',
+          builder: (context, state) => const RoleSelectionScreen(),
         ),
         
         // Rutas de Owner

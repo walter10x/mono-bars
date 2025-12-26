@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:formz/formz.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +10,7 @@ import '../../../shared/widgets/custom_button.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/loading_overlay.dart';
 import '../controllers/auth_controller.dart';
+import '../services/google_auth_service.dart';
 
 /// Pantalla de inicio de sesión
 class LoginScreen extends ConsumerStatefulWidget {
@@ -25,6 +27,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isGoogleSignInInProgress = false; // Flag para evitar redirección automática
 
   @override
   void dispose() {
@@ -55,6 +58,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     context.go('/register');
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isGoogleSignInInProgress = true);
+    
+    final googleAuthService = ref.read(googleAuthServiceProvider);
+    
+    // Obtener ID Token de Google
+    final idToken = await googleAuthService.signIn();
+    
+    if (idToken == null) {
+      // Usuario canceló el login
+      setState(() => _isGoogleSignInInProgress = false);
+      return;
+    }
+    
+    // Enviar token al backend
+    final isNewUser = await ref.read(authControllerProvider.notifier).loginWithGoogle(idToken);
+    
+    // Si es usuario nuevo, navegar a pantalla de selección de rol
+    if (mounted) {
+      if (isNewUser) {
+        context.go('/role-selection');
+      } else {
+        // Usuario existente: navegar según rol
+        final user = ref.read(currentUserProvider);
+        if (user != null) {
+          final isOwner = user.role == 'owner' || user.roles.contains('owner');
+          if (isOwner) {
+            context.go('/owner/dashboard');
+          } else {
+            context.go('/client/home');
+          }
+        }
+      }
+      setState(() => _isGoogleSignInInProgress = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
@@ -69,7 +109,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ref.read(authControllerProvider.notifier).clearError();
         });
       } else if (current.isAuthenticated && current.user != null) {
-        // Navegar según el rol del usuario
+        // NO navegar automáticamente si estamos en flujo de Google Sign-In
+        // El método _handleGoogleSignIn manejará la navegación
+        if (_isGoogleSignInInProgress) {
+          print('🔍 DEBUG: Saltando navegación automática (Google Sign-In en progreso)');
+          return;
+        }
+        
+        // Navegar según el rol del usuario (solo para login normal)
         final user = current.user!;
         final userRole = user.role?.toLowerCase() ?? 'client';
         
@@ -267,6 +314,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 14),
                         
                         _buildForgotPasswordButton(),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Divider con texto "o"
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Divider(
+                                color: Colors.white.withOpacity(0.2),
+                                thickness: 1,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'o',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Divider(
+                                color: Colors.white.withOpacity(0.2),
+                                thickness: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Botón de Google Sign-In
+                        _buildGoogleSignInButton(),
                       ],
                     ),
                   ),
@@ -457,6 +539,71 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: const Text(
           '¿Olvidaste tu contraseña?',
           style: TextStyle(fontSize: 14),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleSignInButton() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1.5,
+        ),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.1),
+            Colors.white.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _handleGoogleSignIn,
+          borderRadius: BorderRadius.circular(14),
+          splashColor: Colors.white.withOpacity(0.1),
+          highlightColor: Colors.white.withOpacity(0.05),
+          child: Container(
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ref.watch(authLoadingProvider)
+                ? const Center(
+                    child: SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo oficial de Google usando SVG
+                      SvgPicture.asset(
+                        'assets/images/google_logo.svg',
+                        width: 24,
+                        height: 24,
+                      ),
+                      const SizedBox(width: 14),
+                      const Text(
+                        'Continuar con Google',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
